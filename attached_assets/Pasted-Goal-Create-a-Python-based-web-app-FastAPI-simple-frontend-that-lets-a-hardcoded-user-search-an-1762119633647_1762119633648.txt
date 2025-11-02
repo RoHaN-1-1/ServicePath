@@ -1,0 +1,137 @@
+Goal:
+Create a Python-based web app (FastAPI + simple frontend) that lets a hardcoded user search and explore volunteer opportunities. The app will also support simple tools (quiz, hour tracker, reflections, share) and use the OpenAI API for AI-powered recommendation scoring.
+
+⚙️ Backend Setup
+
+Stack:
+
+Python (FastAPI) for backend
+
+Jinja2 templates or React for frontend UI
+
+In-memory data storage (no database)
+
+OpenAI Chat Completions API for recommendation scoring
+
+Minimal authentication: single hardcoded username/password
+
+Hardcoded credentials:
+
+USERNAME = "student"
+PASSWORD = "password123"
+
+🧩 Backend Features
+
+Authentication
+
+Simple login page (username + password)
+
+Store session in memory for the logged-in user
+
+Search API
+
+Endpoint: /search
+
+Accepts a search query (e.g., “environment” or “tutoring”)
+
+Returns a list of volunteering opportunities from a predefined dataset (in-memory)
+
+Fields: title, location, hosted_by, requirements, description
+
+AI Recommendation
+
+Endpoint: /recommend
+
+Takes user profile/interests
+
+Calls OpenAI API to rank or summarize top opportunities
+
+Returns scored opportunities
+
+Tools API
+
+/quiz → simple quiz to collect interests and personality type
+
+/tracker → store volunteer hours in memory
+
+/reflections → store user reflections (text entries)
+
+/share → generate dummy shareable link
+
+💻 Frontend Layout (Based on Drawing)
+
+Top-right:
+
+Account username display (@username)
+
+When clicked → dropdown with:
+
+“Account Info”
+
+“Sign Out”
+
+Main content:
+
+Greeting: “Hello, User!”
+
+Search bar labeled “What do you want to do today?”
+
+When user searches → display table below showing opportunities
+
+Columns: Volunteer, Location, Hosted By, Requirements, Description
+
+Right panel (Tools section):
+
+Header: “Tools”
+
+Buttons:
+
+Quiz
+
+Tracker
+
+Reflections
+
+Share
+
+Help
+
+🧪 Example In-Memory Data
+volunteer_data = [
+  {
+    "title": "Park Cleanup",
+    "location": "Riverside Park",
+    "hosted_by": "GreenEarth Org",
+    "requirements": "Ages 14+, Saturday morning, in-person",
+    "description": "Join us to clean up the local park and learn about ecosystem restoration."
+  },
+  {
+    "title": "Virtual Tutoring",
+    "location": "Online",
+    "hosted_by": "LearnTogether",
+    "requirements": "High school students, 1 hr/week, virtual",
+    "description": "Help younger students with homework via Zoom."
+  }
+]
+
+🧠 OpenAI API Integration
+
+Endpoint /recommend should send user preferences to gpt-4o-mini (or similar model) to get ranked or summarized recommendations based on the volunteer data.
+
+Example prompt:
+
+"Given this user profile and the following volunteer opportunities, rank and explain the top 3 matches."
+
+✅ Deliverables
+
+Fully working FastAPI app (single main.py)
+
+Frontend interface matching the sketch (simple HTML/CSS/JS or React)
+
+Runs in Replit with uvicorn main:app --reload
+
+OpenAPI docs enabled at /docs
+
+All data stored in memory (no DB)
+
+Uses OpenAI API key from environment variable
