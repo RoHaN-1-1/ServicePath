@@ -1,22 +1,197 @@
-import { type User, type InsertUser } from "@shared/schema";
+import {
+  type User,
+  type InsertUser,
+  type UserProfile,
+  type InsertUserProfile,
+  type VolunteerOpportunity,
+  type VolunteerHour,
+  type InsertVolunteerHour,
+  type Reflection,
+  type InsertReflection,
+  type ShareableLink,
+} from "@shared/schema";
 import { randomUUID } from "crypto";
 
-// modify the interface with any CRUD methods
-// you might need
-
 export interface IStorage {
+  // User methods
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  
+  // Profile methods
+  getProfile(userId: string): Promise<UserProfile | undefined>;
+  createProfile(userId: string, profile: InsertUserProfile): Promise<UserProfile>;
+  updateProfile(userId: string, profile: InsertUserProfile): Promise<UserProfile>;
+  
+  // Opportunities methods
+  getAllOpportunities(): Promise<VolunteerOpportunity[]>;
+  searchOpportunities(query: string): Promise<VolunteerOpportunity[]>;
+  
+  // Hours methods
+  getHours(userId: string): Promise<VolunteerHour[]>;
+  addHour(userId: string, hour: InsertVolunteerHour): Promise<VolunteerHour>;
+  
+  // Reflections methods
+  getReflections(userId: string): Promise<Reflection[]>;
+  addReflection(userId: string, reflection: InsertReflection): Promise<Reflection>;
+  
+  // Share methods
+  createShareLink(userId: string, content: string): Promise<ShareableLink>;
 }
 
 export class MemStorage implements IStorage {
   private users: Map<string, User>;
+  private profiles: Map<string, UserProfile>;
+  private opportunities: VolunteerOpportunity[];
+  private hours: Map<string, VolunteerHour[]>;
+  private reflections: Map<string, Reflection[]>;
+  private shareLinks: Map<string, ShareableLink>;
+  private sessions: Map<string, string>; // sessionId -> userId
 
   constructor() {
     this.users = new Map();
+    this.profiles = new Map();
+    this.hours = new Map();
+    this.reflections = new Map();
+    this.shareLinks = new Map();
+    this.sessions = new Map();
+    
+    // Initialize with pre-populated volunteer opportunities
+    this.opportunities = [
+      {
+        id: "1",
+        title: "Park Cleanup",
+        location: "Riverside Park",
+        hostedBy: "GreenEarth Org",
+        requirements: "Ages 14+, Saturday morning, in-person",
+        description: "Join us to clean up the local park and learn about ecosystem restoration.",
+        category: ["environment", "community"],
+        skills: ["physical"],
+        timeCommitment: "Saturday morning, 3 hours",
+        remote: false,
+        tags: ["service_hours"],
+      },
+      {
+        id: "2",
+        title: "Virtual Tutoring",
+        location: "Online",
+        hostedBy: "LearnTogether",
+        requirements: "High school students, 1 hr/week, virtual",
+        description: "Help younger students with homework via Zoom.",
+        category: ["tutoring", "youth"],
+        skills: ["tutoring", "communication"],
+        timeCommitment: "Weekday evening, 1 hr/week",
+        remote: true,
+        tags: ["college_application", "leadership"],
+      },
+      {
+        id: "3",
+        title: "Animal Shelter Social Media Campaign",
+        location: "Remote/Hybrid",
+        hostedBy: "Happy Paws Rescue",
+        requirements: "Ages 15+, social media experience helpful",
+        description: "Create engaging content to help shelter animals find homes. Remote work with optional in-person visits.",
+        category: ["animals"],
+        skills: ["social_media", "creative"],
+        timeCommitment: "Weekday evening, flexible",
+        remote: true,
+        tags: ["service_hours"],
+      },
+      {
+        id: "4",
+        title: "Elementary School Mentoring",
+        location: "Lincoln Elementary School",
+        hostedBy: "Youth Mentorship Alliance",
+        requirements: "Ages 16+, after school once a week",
+        description: "Mentor elementary students, help with reading and building confidence.",
+        category: ["youth", "tutoring"],
+        skills: ["tutoring", "leadership", "communication"],
+        timeCommitment: "Weekday afternoon, 2 hrs/week",
+        remote: false,
+        tags: ["college_application", "leadership"],
+      },
+      {
+        id: "5",
+        title: "Community Garden Project",
+        location: "Sunshine Community Garden",
+        hostedBy: "Urban Harvest Initiative",
+        requirements: "Ages 13+, Saturday mornings",
+        description: "Learn about sustainable agriculture while growing food for local food banks.",
+        category: ["environment", "community"],
+        skills: ["physical"],
+        timeCommitment: "Saturday morning, 4 hours",
+        remote: false,
+        tags: ["service_hours"],
+      },
+      {
+        id: "6",
+        title: "Senior Tech Support",
+        location: "Sunset Senior Center",
+        hostedBy: "TechConnect Seniors",
+        requirements: "Ages 14+, tech-savvy, patient",
+        description: "Help seniors learn to use smartphones, tablets, and computers.",
+        category: ["seniors", "technology"],
+        skills: ["tech", "communication"],
+        timeCommitment: "Saturday afternoon, 2 hrs/week",
+        remote: false,
+        tags: ["service_hours", "leadership"],
+      },
+      {
+        id: "7",
+        title: "Art Class Assistant",
+        location: "Community Arts Center",
+        hostedBy: "Arts for All",
+        requirements: "Ages 15+, some art experience",
+        description: "Assist in teaching art classes to children and teens from underserved communities.",
+        category: ["arts", "youth"],
+        skills: ["creative", "leadership"],
+        timeCommitment: "Sunday afternoon, 3 hours",
+        remote: false,
+        tags: ["college_application"],
+      },
+      {
+        id: "8",
+        title: "Online STEM Tutoring",
+        location: "Virtual",
+        hostedBy: "STEM Scholars Network",
+        requirements: "Strong in math/science, high school students",
+        description: "Provide virtual tutoring in STEM subjects to middle school students.",
+        category: ["tutoring", "technology"],
+        skills: ["tutoring", "tech", "communication"],
+        timeCommitment: "Flexible weekday evening, 1-2 hrs/week",
+        remote: true,
+        tags: ["college_application", "leadership"],
+      },
+      {
+        id: "9",
+        title: "Trail Maintenance",
+        location: "Mountain View Nature Reserve",
+        hostedBy: "Conservation Corps",
+        requirements: "Ages 14+, physically active",
+        description: "Help maintain hiking trails and preserve natural habitats.",
+        category: ["environment"],
+        skills: ["physical", "leadership"],
+        timeCommitment: "Saturday morning, 4-5 hours monthly",
+        remote: false,
+        tags: ["service_hours"],
+      },
+      {
+        id: "10",
+        title: "Food Bank Volunteer",
+        location: "City Food Bank",
+        hostedBy: "Nourish Our Neighbors",
+        requirements: "Ages 13+, flexible schedule",
+        description: "Sort donations, pack food boxes, and help distribute meals to families in need.",
+        category: ["community"],
+        skills: ["physical", "event_planning"],
+        timeCommitment: "Flexible, 2-4 hours",
+        remote: false,
+        tags: ["service_hours"],
+      },
+    ];
   }
 
+  // User methods
   async getUser(id: string): Promise<User | undefined> {
     return this.users.get(id);
   }
@@ -32,6 +207,110 @@ export class MemStorage implements IStorage {
     const user: User = { ...insertUser, id };
     this.users.set(id, user);
     return user;
+  }
+
+  // Profile methods
+  async getProfile(userId: string): Promise<UserProfile | undefined> {
+    return this.profiles.get(userId);
+  }
+
+  async createProfile(userId: string, profile: InsertUserProfile): Promise<UserProfile> {
+    const userProfile: UserProfile = {
+      id: randomUUID(),
+      userId,
+      ...profile,
+    };
+    this.profiles.set(userId, userProfile);
+    return userProfile;
+  }
+
+  async updateProfile(userId: string, profile: InsertUserProfile): Promise<UserProfile> {
+    const existingProfile = this.profiles.get(userId);
+    const userProfile: UserProfile = {
+      id: existingProfile?.id || randomUUID(),
+      userId,
+      ...profile,
+    };
+    this.profiles.set(userId, userProfile);
+    return userProfile;
+  }
+
+  // Opportunities methods
+  async getAllOpportunities(): Promise<VolunteerOpportunity[]> {
+    return this.opportunities;
+  }
+
+  async searchOpportunities(query: string): Promise<VolunteerOpportunity[]> {
+    const lowerQuery = query.toLowerCase();
+    return this.opportunities.filter(opp =>
+      opp.title.toLowerCase().includes(lowerQuery) ||
+      opp.description.toLowerCase().includes(lowerQuery) ||
+      opp.category.some(cat => cat.toLowerCase().includes(lowerQuery)) ||
+      opp.skills.some(skill => skill.toLowerCase().includes(lowerQuery)) ||
+      opp.hostedBy.toLowerCase().includes(lowerQuery)
+    );
+  }
+
+  // Hours methods
+  async getHours(userId: string): Promise<VolunteerHour[]> {
+    return this.hours.get(userId) || [];
+  }
+
+  async addHour(userId: string, hour: InsertVolunteerHour): Promise<VolunteerHour> {
+    const newHour: VolunteerHour = {
+      id: randomUUID(),
+      userId,
+      ...hour,
+    };
+    const userHours = this.hours.get(userId) || [];
+    userHours.push(newHour);
+    this.hours.set(userId, userHours);
+    return newHour;
+  }
+
+  // Reflections methods
+  async getReflections(userId: string): Promise<Reflection[]> {
+    return this.reflections.get(userId) || [];
+  }
+
+  async addReflection(userId: string, reflection: InsertReflection): Promise<Reflection> {
+    const newReflection: Reflection = {
+      id: randomUUID(),
+      userId,
+      date: new Date().toISOString(),
+      ...reflection,
+    };
+    const userReflections = this.reflections.get(userId) || [];
+    userReflections.push(newReflection);
+    this.reflections.set(userId, userReflections);
+    return newReflection;
+  }
+
+  // Share methods
+  async createShareLink(userId: string, content: string): Promise<ShareableLink> {
+    const link: ShareableLink = {
+      id: randomUUID(),
+      userId,
+      content,
+      createdAt: new Date().toISOString(),
+    };
+    this.shareLinks.set(link.id, link);
+    return link;
+  }
+
+  // Session methods
+  createSession(userId: string): string {
+    const sessionId = randomUUID();
+    this.sessions.set(sessionId, userId);
+    return sessionId;
+  }
+
+  getSession(sessionId: string): string | undefined {
+    return this.sessions.get(sessionId);
+  }
+
+  deleteSession(sessionId: string): void {
+    this.sessions.delete(sessionId);
   }
 }
 

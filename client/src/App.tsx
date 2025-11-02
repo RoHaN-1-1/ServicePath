@@ -1,30 +1,89 @@
-import { Switch, Route } from "wouter";
+import { useState, useEffect } from "react";
+import { Switch, Route, Redirect } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ThemeProvider } from "@/contexts/ThemeContext";
+import { Header } from "@/components/Header";
+import Login from "@/pages/Login";
+import Dashboard from "@/pages/Dashboard";
+import Quiz from "@/pages/Quiz";
+import Tracker from "@/pages/Tracker";
+import Reflections from "@/pages/Reflections";
+import Share from "@/pages/Share";
+import Search from "@/pages/Search";
 import NotFound from "@/pages/not-found";
 
 function Router() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [username, setUsername] = useState("");
+
+  useEffect(() => {
+    // Check if user is already logged in (session stored in memory)
+    const storedAuth = sessionStorage.getItem("authenticated");
+    const storedUsername = sessionStorage.getItem("username");
+    if (storedAuth === "true" && storedUsername) {
+      setIsAuthenticated(true);
+      setUsername(storedUsername);
+    }
+  }, []);
+
+  const handleLoginSuccess = (user: string) => {
+    setIsAuthenticated(true);
+    setUsername(user);
+    sessionStorage.setItem("authenticated", "true");
+    sessionStorage.setItem("username", user);
+  };
+
+  const handleLogout = async () => {
+    try {
+      // Call logout API to clear server-side session
+      await fetch("/api/logout", { method: "POST", credentials: "include" });
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
+      // Clear client-side state regardless of API success
+      setIsAuthenticated(false);
+      setUsername("");
+      sessionStorage.removeItem("authenticated");
+      sessionStorage.removeItem("username");
+      queryClient.clear();
+    }
+  };
+
+  if (!isAuthenticated) {
+    return <Login onLoginSuccess={handleLoginSuccess} />;
+  }
+
   return (
-    <Switch>
-      {/* Add pages below */}
-      {/* <Route path="/" component={Home}/> */}
-      {/* Fallback to 404 */}
-      <Route component={NotFound} />
-    </Switch>
+    <div className="min-h-screen flex flex-col">
+      <Header username={username} onLogout={handleLogout} />
+      <div className="flex-1">
+        <Switch>
+          <Route path="/" component={() => <Redirect to="/dashboard" />} />
+          <Route path="/dashboard" component={Dashboard} />
+          <Route path="/quiz" component={Quiz} />
+          <Route path="/tracker" component={Tracker} />
+          <Route path="/reflections" component={Reflections} />
+          <Route path="/share" component={Share} />
+          <Route path="/search" component={Search} />
+          <Route component={NotFound} />
+        </Switch>
+      </div>
+    </div>
   );
 }
 
-function App() {
+export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Router />
-      </TooltipProvider>
+      <ThemeProvider>
+        <TooltipProvider>
+          <Router />
+          <Toaster />
+        </TooltipProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }
-
-export default App;
