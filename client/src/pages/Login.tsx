@@ -36,11 +36,13 @@ export default function Login({ onLoginSuccess }: LoginProps) {
   const onSubmit = async (data: LoginCredentials) => {
     setIsLoading(true);
     try {
-      const response = await apiRequest<{ success: boolean; username: string }>(
+      const res = await apiRequest(
         "POST",
         "/api/login",
         data
       );
+      
+      const response = await res.json() as { success: boolean; username: string };
       
       if (response.success) {
         onLoginSuccess(response.username);
@@ -80,7 +82,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                     <FormControl>
                       <Input
                         {...field}
-                        placeholder="student"
+                        placeholder="username"
                         data-testid="input-username"
                         autoComplete="username"
                       />
