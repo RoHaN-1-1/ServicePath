@@ -24,12 +24,16 @@ export function Header({ username, onLogout }: HeaderProps) {
 
   return (
     <header className="sticky top-0 z-50 flex items-center justify-between px-6 py-4 border-b bg-background">
-      <div className="flex items-center gap-3">
+      <button 
+        onClick={() => setLocation("/")}
+        className="flex items-center gap-3 hover-elevate active-elevate-2 rounded-md px-2 py-1 -ml-2"
+        data-testid="button-logo-home"
+      >
         <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-primary-foreground font-semibold">
           V
         </div>
         <h1 className="text-xl font-bold">VolunteerMatch</h1>
-      </div>
+      </button>
 
       <div className="flex items-center gap-3">
         <ThemeToggle />
