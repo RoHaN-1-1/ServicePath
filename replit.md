@@ -2,17 +2,30 @@
 
 ## Overview
 
-VolunteerMatch is a web application designed to help high school students discover and engage with volunteer opportunities. The platform uses AI-powered recommendations to match students with opportunities based on their interests, skills, availability, and goals. Students can track their volunteer hours, write reflections, and share their service summaries.
+VolunteerMatch is a web application designed to help high school students discover and engage with volunteer opportunities. The platform matches students with opportunities based on their interests, skills, availability, and goals selected through an onboarding quiz. Students can track their volunteer hours, write reflections, and share their service summaries.
 
 **Target Users:** High school students seeking meaningful volunteer experiences for personal growth, college applications, and community service requirements.
 
 **Core Features:**
-- AI-powered opportunity matching using OpenAI's GPT models
-- Interest/skill profiling through an onboarding quiz
+- Interest-based opportunity matching through personality quiz
+- Browse opportunities by category (Environment & Nature, Education & Training, Animal Welfare, Arts & Culture, Technology & STEM, Community Service, Senior Care, Youth Mentoring)
 - Volunteer hour tracking with verification status
 - Reflection journaling
 - Shareable service summaries
 - Search and filter capabilities
+
+**Data Source:**
+- 20 volunteer opportunities loaded from `volunteer_opportunities.csv`
+- Opportunities organized by 8 main categories mapped to user interest fields
+
+**Recent Updates (November 11, 2025):**
+- Fixed authentication: Cookie-based sessions now include `path: "/"` attribute
+- Logo navigation: Clicking the logo/VolunteerMatch text returns to dashboard
+- CSV integration: All opportunities now loaded from volunteer_opportunities.csv
+- Dashboard behavior:
+  - **Before quiz**: Shows "Browse by Category" section with opportunities organized by field
+  - **After quiz**: Shows filtered opportunities matching user's selected interests
+  - **After quiz**: "Browse by Category" moved to tools sidebar for easy access
 
 ## User Preferences
 

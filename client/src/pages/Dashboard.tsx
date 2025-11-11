@@ -208,95 +208,93 @@ export default function Dashboard() {
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h2 className="text-2xl font-semibold">Your Personalized Matches</h2>
+                    <h2 className="text-2xl font-semibold">Opportunities for You</h2>
                     <p className="text-muted-foreground">
-                      AI-powered recommendations based on your interests and goals
+                      Based on your selected interests: {profile.interests.join(", ")}
                     </p>
                   </div>
                 </div>
 
-                {recommendations && recommendations.length > 0 ? (
-                  <div className="rounded-lg border overflow-hidden">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead className="w-[25%]">Volunteer Opportunity</TableHead>
-                          <TableHead className="w-[15%]">Location</TableHead>
-                          <TableHead className="w-[15%]">Hosted By</TableHead>
-                          <TableHead className="w-[20%]">Requirements</TableHead>
-                          <TableHead className="w-[25%]">Description</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {recommendations.map((match) => (
-                          <TableRow
-                            key={match.opportunity.id}
-                            className="hover-elevate cursor-pointer"
-                            data-testid={`row-opportunity-${match.opportunity.id}`}
-                          >
-                            <TableCell className="font-medium">
-                              <div className="space-y-2">
-                                <div className="font-semibold">{match.opportunity.title}</div>
-                                <div className="flex items-center gap-2 flex-wrap">
-                                  <TooltipProvider>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Badge
-                                          className={`${getScoreColor(match.matchScore)} text-white`}
-                                          data-testid={`badge-score-${match.opportunity.id}`}
-                                        >
-                                          {match.matchScore}% Match
-                                        </Badge>
-                                      </TooltipTrigger>
-                                      <TooltipContent className="max-w-sm">
-                                        <p className="font-semibold mb-1">Why this match?</p>
-                                        <p className="text-sm">{match.matchReason}</p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
-                                  {match.opportunity.remote && (
-                                    <Badge variant="secondary">Remote</Badge>
-                                  )}
-                                </div>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-1 text-sm">
-                                <MapPin className="h-4 w-4 text-muted-foreground" />
-                                {match.opportunity.location}
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-1 text-sm">
+                {(() => {
+                  // Map user interests to opportunity categories
+                  const interestToCategoryMap: Record<string, string[]> = {
+                    "environment": ["environment"],
+                    "education": ["tutoring", "youth"],
+                    "animals": ["animals"],
+                    "arts": ["arts"],
+                    "technology": ["technology"],
+                    "community": ["community"],
+                    "seniors": ["seniors"],
+                    "youth": ["youth"],
+                  };
+
+                  // Get all categories that match user's interests
+                  const relevantCategories = profile.interests.flatMap(
+                    interest => interestToCategoryMap[interest] || []
+                  );
+
+                  // Filter opportunities by user's interests
+                  const matchedOpportunities = allOpportunities?.filter(opp =>
+                    opp.category.some(cat => relevantCategories.includes(cat))
+                  ) || [];
+
+                  return matchedOpportunities.length > 0 ? (
+                    <div className="grid gap-4">
+                      {matchedOpportunities.map(opp => (
+                        <Card key={opp.id} className="hover-elevate" data-testid={`card-opportunity-${opp.id}`}>
+                          <CardHeader>
+                            <CardTitle className="flex items-start justify-between gap-4">
+                              <span>{opp.title}</span>
+                              {opp.remote && <Badge variant="secondary">Remote</Badge>}
+                            </CardTitle>
+                            <CardDescription>{opp.description}</CardDescription>
+                          </CardHeader>
+                          <CardContent className="space-y-3">
+                            <div className="grid gap-2">
+                              <div className="flex items-center gap-2 text-sm">
                                 <Building2 className="h-4 w-4 text-muted-foreground" />
-                                {match.opportunity.hostedBy}
+                                <span className="text-muted-foreground">Hosted by:</span>
+                                <span className="font-medium">{opp.hostedBy}</span>
                               </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-1 text-sm">
+                              <div className="flex items-center gap-2 text-sm">
+                                <MapPin className="h-4 w-4 text-muted-foreground" />
+                                <span className="text-muted-foreground">Location:</span>
+                                <span className="font-medium">{opp.location}</span>
+                              </div>
+                              <div className="flex items-center gap-2 text-sm">
+                                <Clock className="h-4 w-4 text-muted-foreground" />
+                                <span className="text-muted-foreground">Time:</span>
+                                <span className="font-medium">{opp.timeCommitment}</span>
+                              </div>
+                              <div className="flex items-center gap-2 text-sm">
                                 <FileText className="h-4 w-4 text-muted-foreground" />
-                                {match.opportunity.requirements}
+                                <span className="text-muted-foreground">Requirements:</span>
+                                <span className="font-medium">{opp.requirements}</span>
                               </div>
-                            </TableCell>
-                            <TableCell className="text-sm text-muted-foreground">
-                              {match.opportunity.description}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                ) : (
-                  <Card className="border-dashed">
-                    <CardContent className="py-12 text-center">
-                      <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                      <p className="text-lg font-medium">No recommendations yet</p>
-                      <p className="text-muted-foreground">
-                        Try searching for opportunities or update your profile
-                      </p>
-                    </CardContent>
-                  </Card>
-                )}
+                            </div>
+                            <div className="flex flex-wrap gap-2 pt-2">
+                              {opp.category.map(cat => (
+                                <Badge key={cat} variant="outline" className="text-xs">
+                                  {cat}
+                                </Badge>
+                              ))}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  ) : (
+                    <Card className="border-dashed">
+                      <CardContent className="py-12 text-center">
+                        <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                        <p className="text-lg font-medium">No matching opportunities found</p>
+                        <p className="text-muted-foreground">
+                          Try updating your interests in the quiz or browse all opportunities
+                        </p>
+                      </CardContent>
+                    </Card>
+                  );
+                })()}
               </div>
             )}
           </div>
@@ -357,34 +355,84 @@ export default function Dashboard() {
             </Card>
 
             {profile && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Your Profile</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3 text-sm">
-                  <div>
-                    <p className="text-muted-foreground mb-1">Interests</p>
-                    <div className="flex flex-wrap gap-1">
-                      {profile.interests.slice(0, 3).map(interest => (
-                        <Badge key={interest} variant="secondary" className="text-xs">
-                          {interest}
-                        </Badge>
-                      ))}
-                      {profile.interests.length > 3 && (
-                        <Badge variant="secondary" className="text-xs">
-                          +{profile.interests.length - 3} more
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                  {profile.serviceHoursGoal && (
+              <>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Your Profile</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3 text-sm">
                     <div>
-                      <p className="text-muted-foreground mb-1">Service Goal</p>
-                      <p className="font-medium">{profile.serviceHoursGoal} hours</p>
+                      <p className="text-muted-foreground mb-1">Interests</p>
+                      <div className="flex flex-wrap gap-1">
+                        {profile.interests.slice(0, 3).map(interest => (
+                          <Badge key={interest} variant="secondary" className="text-xs">
+                            {interest}
+                          </Badge>
+                        ))}
+                        {profile.interests.length > 3 && (
+                          <Badge variant="secondary" className="text-xs">
+                            +{profile.interests.length - 3} more
+                          </Badge>
+                        )}
+                      </div>
                     </div>
-                  )}
-                </CardContent>
-              </Card>
+                    {profile.serviceHoursGoal && (
+                      <div>
+                        <p className="text-muted-foreground mb-1">Service Goal</p>
+                        <p className="font-medium">{profile.serviceHoursGoal} hours</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Browse by Category - shown after quiz completion */}
+                {allOpportunities && allOpportunities.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">Browse by Category</CardTitle>
+                      <CardDescription>Explore all opportunity types</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      {[
+                        { name: "Environment & Nature", icon: "🌿", categories: ["environment"] },
+                        { name: "Education & Training", icon: "📚", categories: ["tutoring", "youth"] },
+                        { name: "Animal Welfare", icon: "🐾", categories: ["animals"] },
+                        { name: "Arts & Culture", icon: "🎨", categories: ["arts"] },
+                        { name: "Technology & STEM", icon: "💻", categories: ["technology"] },
+                        { name: "Community Service", icon: "🤝", categories: ["community"] },
+                        { name: "Senior Care", icon: "👴", categories: ["seniors"] },
+                        { name: "Youth Mentoring", icon: "👦", categories: ["youth"] },
+                      ].map(({ name, icon, categories }) => {
+                        const categoryOpps = allOpportunities.filter(opp =>
+                          opp.category.some(cat => categories.includes(cat))
+                        );
+                        if (categoryOpps.length === 0) return null;
+
+                        return (
+                          <Button
+                            key={name}
+                            variant="ghost"
+                            className="w-full justify-start gap-2 h-auto py-3 px-3"
+                            onClick={() => {
+                              const element = document.getElementById(`category-${categories[0]}`);
+                              element?.scrollIntoView({ behavior: 'smooth' });
+                            }}
+                            data-testid={`button-category-${categories[0]}`}
+                          >
+                            <span className="text-xl">{icon}</span>
+                            <div className="flex flex-col items-start flex-1">
+                              <span className="text-sm font-medium">{name}</span>
+                              <span className="text-xs text-muted-foreground">
+                                {categoryOpps.length} opportunities
+                              </span>
+                            </div>
+                          </Button>
+                        );
+                      })}
+                    </CardContent>
+                  </Card>
+                )}
+              </>
             )}
           </aside>
         </div>
