@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { OpportunityMatch, UserProfile } from "@shared/schema";
+import type { OpportunityMatch, UserProfile, VolunteerOpportunity } from "@shared/schema";
 import { useLocation } from "wouter";
 import {
   Table,
@@ -34,6 +34,10 @@ export default function Dashboard() {
   const { data: recommendations, isLoading: recsLoading } = useQuery<OpportunityMatch[]>({
     queryKey: ["/api/recommend"],
     enabled: !!profile,
+  });
+
+  const { data: allOpportunities } = useQuery<VolunteerOpportunity[]>({
+    queryKey: ["/api/opportunities"],
   });
 
   const handleSearch = () => {
@@ -103,22 +107,103 @@ export default function Dashboard() {
                 </CardContent>
               </Card>
             ) : !profile ? (
-              <Card className="border-dashed">
-                <CardHeader className="text-center">
-                  <div className="flex justify-center mb-4">
-                    <Sparkles className="h-12 w-12 text-muted-foreground" />
+              allOpportunities && allOpportunities.length > 0 ? (
+                <div className="space-y-6">
+                  <Card>
+                    <CardHeader className="text-center">
+                      <div className="flex justify-center mb-4">
+                        <Sparkles className="h-12 w-12 text-primary" />
+                      </div>
+                      <CardTitle>Discover Volunteer Opportunities</CardTitle>
+                      <CardDescription>
+                        Take our quick quiz to get personalized recommendations, or browse opportunities by category below
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="flex justify-center">
+                      <Button onClick={() => setLocation("/quiz")} size="lg" data-testid="button-start-quiz">
+                        Take Quiz for Personalized Matches
+                      </Button>
+                    </CardContent>
+                  </Card>
+
+                  {/* Opportunities by category */}
+                  <div className="space-y-6">
+                    <h2 className="text-2xl font-semibold">Browse by Category</h2>
+                    {[
+                      { name: "Environment & Nature", icon: "🌿", categories: ["environment"] },
+                      { name: "Education & Training", icon: "📚", categories: ["tutoring", "youth"] },
+                      { name: "Animal Welfare", icon: "🐾", categories: ["animals"] },
+                      { name: "Arts & Culture", icon: "🎨", categories: ["arts"] },
+                      { name: "Technology & STEM", icon: "💻", categories: ["technology"] },
+                      { name: "Community Service", icon: "🤝", categories: ["community"] },
+                      { name: "Senior Care", icon: "👴", categories: ["seniors"] },
+                      { name: "Youth Mentoring", icon: "👦", categories: ["youth"] },
+                    ].map(({ name, icon, categories }) => {
+                      const categoryOpps = allOpportunities.filter(opp =>
+                        opp.category.some(cat => categories.includes(cat))
+                      );
+                      if (categoryOpps.length === 0) return null;
+                      
+                      return (
+                        <Card key={name}>
+                          <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                              <span className="text-2xl">{icon}</span>
+                              {name}
+                            </CardTitle>
+                            <CardDescription>{categoryOpps.length} opportunities available</CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="grid gap-4">
+                              {categoryOpps.slice(0, 3).map(opp => (
+                                <div key={opp.id} className="p-4 border rounded-lg hover-elevate" data-testid={`card-opportunity-${opp.id}`}>
+                                  <div className="flex items-start justify-between gap-4">
+                                    <div className="flex-1">
+                                      <h4 className="font-semibold mb-1">{opp.title}</h4>
+                                      <p className="text-sm text-muted-foreground mb-2">{opp.description}</p>
+                                      <div className="flex flex-wrap gap-2">
+                                        <Badge variant="secondary" className="text-xs">
+                                          <Building2 className="h-3 w-3 mr-1" />
+                                          {opp.hostedBy}
+                                        </Badge>
+                                        <Badge variant="secondary" className="text-xs">
+                                          <MapPin className="h-3 w-3 mr-1" />
+                                          {opp.location}
+                                        </Badge>
+                                        <Badge variant="secondary" className="text-xs">
+                                          <Clock className="h-3 w-3 mr-1" />
+                                          {opp.timeCommitment}
+                                        </Badge>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
                   </div>
-                  <CardTitle>Take the Quiz to Get Started</CardTitle>
-                  <CardDescription>
-                    Complete our quick personality quiz to receive personalized volunteer recommendations
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="flex justify-center">
-                  <Button onClick={() => setLocation("/quiz")} size="lg" data-testid="button-start-quiz">
-                    Start Quiz
-                  </Button>
-                </CardContent>
-              </Card>
+                </div>
+              ) : (
+                <Card className="border-dashed">
+                  <CardHeader className="text-center">
+                    <div className="flex justify-center mb-4">
+                      <Sparkles className="h-12 w-12 text-muted-foreground" />
+                    </div>
+                    <CardTitle>Take the Quiz to Get Started</CardTitle>
+                    <CardDescription>
+                      Complete our quick personality quiz to receive personalized volunteer recommendations
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex justify-center">
+                    <Button onClick={() => setLocation("/quiz")} size="lg" data-testid="button-start-quiz">
+                      Start Quiz
+                    </Button>
+                  </CardContent>
+                </Card>
+              )
             ) : (
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
