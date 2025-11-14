@@ -3,11 +3,13 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import {
   loginSchema,
+  insertUserSchema,
   insertUserProfileSchema,
   insertVolunteerHourSchema,
   insertReflectionSchema,
 } from "@shared/schema";
 import { generateRecommendations } from "./openai";
+import bcrypt from "bcryptjs";
 
 // Hardcoded credentials
 const HARDCODED_USERNAME = "student";
@@ -33,36 +35,74 @@ function requireAuth(req: Request, res: Response, next: Function) {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // POST /api/login - Validate hardcoded credentials
+  // POST /api/login - Validate credentials
   app.post("/api/login", async (req: Request, res: Response) => {
     try {
       const credentials = loginSchema.parse(req.body);
       
-      if (credentials.username === HARDCODED_USERNAME && credentials.password === HARDCODED_PASSWORD) {
-        // Get or create user
-        let user = await storage.getUserByUsername(HARDCODED_USERNAME);
-        if (!user) {
-          user = await storage.createUser({
-            username: HARDCODED_USERNAME,
-            password: HARDCODED_PASSWORD,
-          });
-        }
-        
-        // Create session
-        const sessionId = storage.createSession(user.id);
-        
-        // Set cookie
-        res.cookie("sessionId", sessionId, {
-          httpOnly: true,
-          maxAge: 24 * 60 * 60 * 1000, // 24 hours
-          sameSite: "lax",
-          path: "/",
+      // Get user by username
+      let user = await storage.getUserByUsername(credentials.username);
+      
+      // If hardcoded demo account and doesn't exist, create it with hashed password
+      if (!user && credentials.username === HARDCODED_USERNAME) {
+        const hashedPassword = await bcrypt.hash(HARDCODED_PASSWORD, 10);
+        user = await storage.createUser({
+          username: HARDCODED_USERNAME,
+          password: hashedPassword,
         });
-        
-        res.json({ success: true, username: user.username });
-      } else {
-        res.status(401).json({ error: "Invalid credentials" });
       }
+      
+      // Validate user exists and password matches
+      if (!user) {
+        return res.status(401).json({ error: "Invalid credentials" });
+      }
+      
+      // Compare password with hashed password
+      const isValidPassword = await bcrypt.compare(credentials.password, user.password);
+      
+      if (!isValidPassword) {
+        return res.status(401).json({ error: "Invalid credentials" });
+      }
+      
+      // Create session
+      const sessionId = storage.createSession(user.id);
+      
+      // Set cookie
+      res.cookie("sessionId", sessionId, {
+        httpOnly: true,
+        maxAge: 24 * 60 * 60 * 1000, // 24 hours
+        sameSite: "lax",
+        path: "/",
+      });
+      
+      res.json({ success: true, username: user.username });
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  // POST /api/register - Register new user
+  app.post("/api/register", async (req: Request, res: Response) => {
+    try {
+      // Validate with insertUserSchema (only username and password)
+      const credentials = insertUserSchema.parse(req.body);
+      
+      // Check if username already exists
+      const existingUser = await storage.getUserByUsername(credentials.username);
+      if (existingUser) {
+        return res.status(400).json({ error: "Username already exists" });
+      }
+      
+      // Hash password before storing
+      const hashedPassword = await bcrypt.hash(credentials.password, 10);
+      
+      // Create new user with hashed password
+      const user = await storage.createUser({
+        username: credentials.username,
+        password: hashedPassword,
+      });
+      
+      res.json({ success: true, username: user.username });
     } catch (error: any) {
       res.status(400).json({ error: error.message });
     }

@@ -31,11 +31,6 @@ export default function Dashboard() {
     queryKey: ["/api/profile"],
   });
 
-  const { data: recommendations, isLoading: recsLoading } = useQuery<OpportunityMatch[]>({
-    queryKey: ["/api/recommend"],
-    enabled: !!profile,
-  });
-
   const { data: allOpportunities } = useQuery<VolunteerOpportunity[]>({
     queryKey: ["/api/opportunities"],
   });
@@ -94,7 +89,7 @@ export default function Dashboard() {
             </div>
 
             {/* Recommendations Section */}
-            {profileLoading || recsLoading ? (
+            {profileLoading ? (
               <Card>
                 <CardHeader>
                   <Skeleton className="h-6 w-48" />
@@ -301,7 +296,8 @@ export default function Dashboard() {
 
           {/* Tools Sidebar */}
           <aside className="lg:w-80 space-y-6">
-            <Card className="sticky top-20">
+            <div className="lg:sticky lg:top-6 space-y-6">
+            <Card>
               <CardHeader>
                 <CardTitle>Tools</CardTitle>
                 <CardDescription>Manage your volunteer journey</CardDescription>
@@ -434,6 +430,7 @@ export default function Dashboard() {
                 )}
               </>
             )}
+            </div>
           </aside>
         </div>
       </div>

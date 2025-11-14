@@ -18,14 +18,22 @@ VolunteerMatch is a web application designed to help high school students discov
 - 20 volunteer opportunities loaded from `volunteer_opportunities.csv`
 - Opportunities organized by 8 main categories mapped to user interest fields
 
-**Recent Updates (November 11, 2025):**
-- Fixed authentication: Cookie-based sessions now include `path: "/"` attribute
-- Logo navigation: Clicking the logo/VolunteerMatch text returns to dashboard
-- CSV integration: All opportunities now loaded from volunteer_opportunities.csv
-- Dashboard behavior:
-  - **Before quiz**: Shows "Browse by Category" section with opportunities organized by field
-  - **After quiz**: Shows filtered opportunities matching user's selected interests
-  - **After quiz**: "Browse by Category" moved to tools sidebar for easy access
+**Recent Updates (November 14, 2025):**
+- **Performance Optimization**: Removed AI recommendation API dependency for faster page loads - opportunities now filtered client-side
+- **Sidebar Fix**: Fixed sticky positioning to prevent overlay issues while scrolling
+- **Registration Feature**: Added complete account creation system
+  - Users can create accounts with username/password
+  - Password security: bcrypt hashing with 10 salt rounds
+  - Form validation: min 3 chars username, min 6 chars password, password confirmation
+  - Username uniqueness validation
+- **Previous Updates (November 11, 2025)**:
+  - Fixed authentication: Cookie-based sessions now include `path: "/"` attribute
+  - Logo navigation: Clicking the logo/VolunteerMatch text returns to dashboard
+  - CSV integration: All opportunities now loaded from volunteer_opportunities.csv
+  - Dashboard behavior:
+    - **Before quiz**: Shows "Browse by Category" section with opportunities organized by field
+    - **After quiz**: Shows filtered opportunities matching user's selected interests
+    - **After quiz**: "Browse by Category" moved to tools sidebar for easy access
 
 ## User Preferences
 
