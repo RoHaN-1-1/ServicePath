@@ -18,15 +18,34 @@ import NotFound from "@/pages/not-found";
 function Router() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [username, setUsername] = useState("");
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   useEffect(() => {
-    // Check if user is already logged in (session stored in memory)
-    const storedAuth = sessionStorage.getItem("authenticated");
-    const storedUsername = sessionStorage.getItem("username");
-    if (storedAuth === "true" && storedUsername) {
-      setIsAuthenticated(true);
-      setUsername(storedUsername);
-    }
+    // Verify session with server on page load
+    const checkAuth = async () => {
+      try {
+        const response = await fetch("/api/me", { credentials: "include" });
+        if (response.ok) {
+          const data = await response.json();
+          setIsAuthenticated(true);
+          setUsername(data.username);
+          sessionStorage.setItem("authenticated", "true");
+          sessionStorage.setItem("username", data.username);
+        } else {
+          // Session invalid, clear storage
+          sessionStorage.removeItem("authenticated");
+          sessionStorage.removeItem("username");
+        }
+      } catch (error) {
+        // Network error or not authenticated
+        sessionStorage.removeItem("authenticated");
+        sessionStorage.removeItem("username");
+      } finally {
+        setIsCheckingAuth(false);
+      }
+    };
+
+    checkAuth();
   }, []);
 
   const handleLoginSuccess = (user: string) => {
@@ -51,6 +70,17 @@ function Router() {
       queryClient.clear();
     }
   };
+
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto" data-testid="loading-auth"></div>
+          <p className="mt-4 text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return <Login onLoginSuccess={handleLoginSuccess} />;

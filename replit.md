@@ -18,7 +18,21 @@ VolunteerMatch is a web application designed to help high school students discov
 - 20 volunteer opportunities loaded from `volunteer_opportunities.csv`
 - Opportunities organized by 8 main categories mapped to user interest fields
 
-**Recent Updates (November 14, 2025):**
+**Recent Updates (November 15, 2025):**
+- **Session Persistence**: Accounts now remain logged in after page reload
+  - Added GET /api/me endpoint to verify server-side session validity
+  - Client checks session on page load with loading indicator
+  - Prevents session mismatch between client and server
+- **Account Statistics Display**: New stats component on Dashboard showing:
+  - Total volunteer hours logged (sum of all hour entries)
+  - Account age (days/months/years since account creation)
+  - Real-time data updates from backend
+- **User Schema Enhancement**: Added createdAt timestamp to user model for tracking account age
+- **Registration Form Fix**: Fixed React form conflict preventing text input in username/password fields
+  - Added unique keys to login/register forms to prevent field collision
+  - Removed unnecessary form resets when switching modes
+
+**Previous Updates (November 14, 2025):**
 - **Performance Optimization**: Removed AI recommendation API dependency for faster page loads - opportunities now filtered client-side
 - **Sidebar Fix**: Fixed sticky positioning to prevent overlay issues while scrolling
 - **Registration Feature**: Added complete account creation system
@@ -54,7 +68,8 @@ Preferred communication style: Simple, everyday language.
 **State Management:**
 - TanStack Query (React Query) for server state management and caching
 - React Context API for theme management
-- Session storage for authentication state persistence
+- Session persistence via server-side validation (GET /api/me endpoint)
+- sessionStorage for client-side authentication state caching
 - React Hook Form with Zod validation for form handling
 
 **Routing:** wouter (lightweight client-side routing)
@@ -123,6 +138,11 @@ The application uses in-memory storage as a lightweight solution for the initial
 **Limitation:** In-memory sessions are lost on server restart. This is acceptable for the current development/demo scope but would need persistence for production.
 
 ### Data Schema Design
+
+**User Structure:**
+- Username and hashed password for authentication
+- createdAt timestamp for tracking account age
+- Unique ID generated via randomUUID
 
 **User Profile Structure:**
 - Arrays for multi-select fields (interests, skills, availability, goals)

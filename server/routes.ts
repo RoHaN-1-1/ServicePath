@@ -108,6 +108,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // GET /api/me - Verify current session and get user info
+  app.get("/api/me", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).userId;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      // Return username and createdAt, but not password
+      res.json({ 
+        username: user.username,
+        createdAt: user.createdAt
+      });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // POST /api/logout - Clear session
   app.post("/api/logout", (req: Request, res: Response) => {
     const sessionId = req.cookies.sessionId;
