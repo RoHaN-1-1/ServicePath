@@ -125,7 +125,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
         </CardHeader>
         <CardContent>
           {!isRegisterMode ? (
-            <Form {...loginForm}>
+            <Form {...loginForm} key="login-form">
               <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
                 <FormField
                   control={loginForm.control}
@@ -188,8 +188,6 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                   variant="outline"
                   className="w-full"
                   onClick={() => {
-                    loginForm.reset();
-                    registerForm.reset();
                     setIsRegisterMode(true);
                   }}
                   data-testid="button-toggle-mode"
@@ -199,7 +197,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
               </form>
             </Form>
           ) : (
-            <Form {...registerForm}>
+            <Form {...registerForm} key="register-form">
               <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
                 <FormField
                   control={registerForm.control}
@@ -281,8 +279,6 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                   variant="outline"
                   className="w-full"
                   onClick={() => {
-                    loginForm.reset();
-                    registerForm.reset();
                     setIsRegisterMode(false);
                   }}
                   data-testid="button-toggle-mode"
