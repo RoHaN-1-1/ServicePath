@@ -19,14 +19,20 @@ VolunteerMatch is a web application designed to help high school students discov
 - Opportunities organized by 8 main categories mapped to user interest fields
 
 **Recent Updates (November 15, 2025):**
+- **Account Info Dialog**: Account statistics moved to dedicated dialog in header menu
+  - Click username in header → "Account Info" to view dialog
+  - Displays total volunteer hours logged and account age
+  - Account deletion feature with password confirmation
+  - Two-step deletion: Delete Account button → password verification dialog
+  - Shows what will be deleted before confirming (hours, profile, reflections)
+- **Account Deletion**: Secure account removal with password verification
+  - POST /api/account/delete endpoint verifies password before deletion
+  - Deletes all user data: profile, hours, reflections, share links, sessions
+  - Cannot login with deleted account credentials
 - **Session Persistence**: Accounts now remain logged in after page reload
   - Added GET /api/me endpoint to verify server-side session validity
   - Client checks session on page load with loading indicator
   - Prevents session mismatch between client and server
-- **Account Statistics Display**: New stats component on Dashboard showing:
-  - Total volunteer hours logged (sum of all hour entries)
-  - Account age (days/months/years since account creation)
-  - Real-time data updates from backend
 - **User Schema Enhancement**: Added createdAt timestamp to user model for tracking account age
 - **Registration Form Fix**: Fixed React form conflict preventing text input in username/password fields
   - Added unique keys to login/register forms to prevent field collision
