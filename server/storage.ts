@@ -19,6 +19,7 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  deleteUser(userId: string): Promise<void>;
   
   // Profile methods
   getProfile(userId: string): Promise<UserProfile | undefined>;
@@ -44,6 +45,7 @@ export interface IStorage {
   createSession(userId: string): string;
   getSession(sessionId: string): string | undefined;
   deleteSession(sessionId: string): void;
+  deleteAllUserSessions(userId: string): void;
 }
 
 export class MemStorage implements IStorage {
@@ -276,6 +278,40 @@ export class MemStorage implements IStorage {
 
   deleteSession(sessionId: string): void {
     this.sessions.delete(sessionId);
+  }
+
+  deleteAllUserSessions(userId: string): void {
+    // Delete all sessions for a specific user
+    const sessionsToDelete = Array.from(this.sessions.entries())
+      .filter(([_, uid]) => uid === userId)
+      .map(([sessionId]) => sessionId);
+    
+    sessionsToDelete.forEach(sessionId => this.sessions.delete(sessionId));
+  }
+
+  // Delete user and all associated data
+  async deleteUser(userId: string): Promise<void> {
+    // Delete user
+    this.users.delete(userId);
+    
+    // Delete profile
+    this.profiles.delete(userId);
+    
+    // Delete hours
+    this.hours.delete(userId);
+    
+    // Delete reflections
+    this.reflections.delete(userId);
+    
+    // Delete share links
+    const linksToDelete = Array.from(this.shareLinks.entries())
+      .filter(([_, link]) => link.userId === userId)
+      .map(([linkId]) => linkId);
+    
+    linksToDelete.forEach(linkId => this.shareLinks.delete(linkId));
+    
+    // Delete all sessions
+    this.deleteAllUserSessions(userId);
   }
 }
 

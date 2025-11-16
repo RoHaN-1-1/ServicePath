@@ -140,6 +140,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ success: true });
   });
 
+  // POST /api/account/delete - Delete user account with password verification
+  app.post("/api/account/delete", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).userId;
+      const { password } = req.body;
+
+      if (!password) {
+        return res.status(400).json({ error: "Password required" });
+      }
+
+      // Get user to verify password
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // Verify password
+      const isValidPassword = await bcrypt.compare(password, user.password);
+      if (!isValidPassword) {
+        return res.status(401).json({ error: "Incorrect password" });
+      }
+
+      // Delete user and all associated data
+      await storage.deleteUser(userId);
+
+      // Clear session cookie
+      res.clearCookie("sessionId");
+      res.json({ success: true, message: "Account deleted successfully" });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // GET /api/profile - Get user profile
   app.get("/api/profile", requireAuth, async (req: Request, res: Response) => {
     try {

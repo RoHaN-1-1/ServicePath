@@ -22,7 +22,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { AccountStats } from "@/components/AccountStats";
 
 export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -88,9 +87,6 @@ export default function Dashboard() {
                 </div>
               </div>
             </div>
-
-            {/* Account Statistics */}
-            <AccountStats />
 
             {/* Recommendations Section */}
             {profileLoading ? (

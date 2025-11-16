@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useLocation } from "wouter";
+import { AccountInfoDialog } from "@/components/AccountInfoDialog";
 
 interface HeaderProps {
   username: string;
@@ -17,9 +18,10 @@ interface HeaderProps {
 
 export function Header({ username, onLogout }: HeaderProps) {
   const [, setLocation] = useLocation();
+  const [showAccountInfo, setShowAccountInfo] = useState(false);
 
   const handleAccountInfo = () => {
-    setLocation("/dashboard");
+    setShowAccountInfo(true);
   };
 
   return (
@@ -66,6 +68,12 @@ export function Header({ username, onLogout }: HeaderProps) {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+      
+      <AccountInfoDialog
+        open={showAccountInfo}
+        onOpenChange={setShowAccountInfo}
+        onAccountDeleted={onLogout}
+      />
     </header>
   );
 }
