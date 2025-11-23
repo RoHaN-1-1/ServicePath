@@ -66,6 +66,7 @@ export interface VolunteerHour {
   hours: number;
   verified: boolean;
   opportunityId?: string;
+  signature?: string; // Base64 data URL of signature image
 }
 
 export const insertVolunteerHourSchema = z.object({
@@ -74,6 +75,7 @@ export const insertVolunteerHourSchema = z.object({
   hours: z.number().min(0.5, "Minimum 0.5 hours").max(24, "Maximum 24 hours"),
   verified: z.boolean().default(false),
   opportunityId: z.string().optional(),
+  signature: z.string().optional(),
 });
 
 export type InsertVolunteerHour = z.infer<typeof insertVolunteerHourSchema>;
