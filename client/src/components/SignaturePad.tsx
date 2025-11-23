@@ -129,7 +129,7 @@ export function SignaturePad({ onSave, onClear, value }: SignaturePadProps) {
         <CardContent className="p-0">
           <canvas
             ref={canvasRef}
-            className="w-full h-32 border-2 border-dashed border-border rounded-md cursor-crosshair bg-background touch-none"
+            className="w-full h-32 border-2 border-dashed border-border rounded-md cursor-crosshair bg-background touch-none dark:invert"
             onMouseDown={startDrawing}
             onMouseMove={draw}
             onMouseUp={stopDrawing}
