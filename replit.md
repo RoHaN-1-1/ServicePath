@@ -19,6 +19,13 @@ VolunteerMatch is a web application designed to help high school students discov
 - Opportunities organized by 8 main categories mapped to user interest fields
 
 **Recent Updates (November 23, 2025):**
+- **AI Matching Test Cases**: Created comprehensive test case documentation (AI_MATCHING_TEST_CASES.md)
+  - 9 student personas with diverse interests, skills, and availability patterns
+  - Validates AI-powered matching accuracy with ±15 point tolerance for GPT-5 variability
+  - Focuses on relative rankings and qualitative assessment vs exact scores
+  - Distinguishes between stochastic AI behavior and deterministic fallback algorithm
+  - Includes edge cases: minimal profiles, broad preferences, location mismatches
+  - Provides quality criteria for match scores and personalized match reasons
 - **Digital Signatures**: Added signature capture to hour logging
   - Canvas-based signature pad with mouse and touch support
   - Signatures stored as base64 PNG data with each hour entry
