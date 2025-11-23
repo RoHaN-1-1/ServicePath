@@ -257,6 +257,7 @@ export default function Tracker() {
                       <TableHead>Date</TableHead>
                       <TableHead>Activity</TableHead>
                       <TableHead>Hours</TableHead>
+                      <TableHead>Signature</TableHead>
                       <TableHead>Status</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -271,6 +272,20 @@ export default function Tracker() {
                           <Badge variant="secondary">
                             {entry.hours} {entry.hours === 1 ? "hour" : "hours"}
                           </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {entry.signature ? (
+                            <img 
+                              src={entry.signature} 
+                              alt="Signature" 
+                              className="h-12 w-24 object-contain border rounded"
+                              data-testid={`img-signature-${entry.id}`}
+                            />
+                          ) : (
+                            <span className="text-muted-foreground text-sm" data-testid={`text-no-signature-${entry.id}`}>
+                              No signature
+                            </span>
+                          )}
                         </TableCell>
                         <TableCell>
                           {entry.verified ? (
