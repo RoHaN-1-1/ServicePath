@@ -28,6 +28,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Plus, Calendar, Clock, CheckCircle2, XCircle } from "lucide-react";
 import { format } from "date-fns";
+import { SignaturePad } from "@/components/SignaturePad";
 
 export default function Tracker() {
   const [showForm, setShowForm] = useState(false);
@@ -44,6 +45,7 @@ export default function Tracker() {
       date: format(new Date(), "yyyy-MM-dd"),
       hours: 1,
       verified: false,
+      signature: "",
     },
   });
 
@@ -193,6 +195,22 @@ export default function Tracker() {
                       )}
                     />
                   </div>
+                  <FormField
+                    control={form.control}
+                    name="signature"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <SignaturePad
+                            value={field.value}
+                            onSave={(signature) => field.onChange(signature)}
+                            onClear={() => field.onChange("")}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                   <div className="flex gap-3">
                     <Button
                       type="submit"
