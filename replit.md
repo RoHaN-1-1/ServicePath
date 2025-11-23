@@ -9,7 +9,7 @@ VolunteerMatch is a web application designed to help high school students discov
 **Core Features:**
 - Interest-based opportunity matching through personality quiz
 - Browse opportunities by category (Environment & Nature, Education & Training, Animal Welfare, Arts & Culture, Technology & STEM, Community Service, Senior Care, Youth Mentoring)
-- Volunteer hour tracking with verification status
+- Volunteer hour tracking with verification status and digital signatures
 - Reflection journaling
 - Shareable service summaries
 - Search and filter capabilities
@@ -18,7 +18,15 @@ VolunteerMatch is a web application designed to help high school students discov
 - 20 volunteer opportunities loaded from `volunteer_opportunities.csv`
 - Opportunities organized by 8 main categories mapped to user interest fields
 
-**Recent Updates (November 15, 2025):**
+**Recent Updates (November 23, 2025):**
+- **Digital Signatures**: Added signature capture to hour logging
+  - Canvas-based signature pad with mouse and touch support
+  - Signatures stored as base64 PNG data with each hour entry
+  - Signature thumbnails display in activity log table
+  - Optional field - entries can be saved with or without signatures
+  - Clear button to reset signature before submission
+
+**Previous Updates (November 15, 2025):**
 - **Account Info Dialog**: Account statistics moved to dedicated dialog in header menu
   - Click username in header → "Account Info" to view dialog
   - Displays total volunteer hours logged and account age
