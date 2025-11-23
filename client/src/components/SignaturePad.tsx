@@ -18,25 +18,25 @@ export function SignaturePad({ onSave, onClear, value }: SignaturePadProps) {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
+    // Set canvas size to match display size
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-
-    // Set canvas size
-    const rect = canvas.getBoundingClientRect();
-    canvas.width = rect.width * window.devicePixelRatio;
-    canvas.height = rect.height * window.devicePixelRatio;
-    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
 
     // Set drawing style
     ctx.lineWidth = 2;
     ctx.lineCap = "round";
+    ctx.lineJoin = "round";
     ctx.strokeStyle = "#000";
 
     // Load existing signature if provided
-    if (value) {
+    if (value && value.length > 0) {
       const img = new Image();
       img.onload = () => {
-        ctx.drawImage(img, 0, 0, rect.width, rect.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
       };
       img.src = value;
       setHasDrawn(true);
