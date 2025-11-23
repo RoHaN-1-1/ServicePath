@@ -278,7 +278,7 @@ export default function Tracker() {
                             <img 
                               src={entry.signature} 
                               alt="Signature" 
-                              className="h-12 w-24 object-contain border rounded"
+                              className="h-12 w-24 object-contain border rounded dark:invert"
                               data-testid={`img-signature-${entry.id}`}
                             />
                           ) : (
