@@ -1,0 +1,490 @@
+import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { queryClient, apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { insertOpportunitySchema, type VolunteerOpportunity, type InsertOpportunity } from "@shared/schema";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Plus, Pencil, Trash2, MapPin, Clock, Loader2, Building2 } from "lucide-react";
+
+const CATEGORIES = [
+  { value: "environment", label: "Environment & Nature" },
+  { value: "tutoring", label: "Education & Training" },
+  { value: "animals", label: "Animal Welfare" },
+  { value: "arts", label: "Arts & Culture" },
+  { value: "technology", label: "Technology & STEM" },
+  { value: "community", label: "Community Service" },
+  { value: "seniors", label: "Senior Care" },
+  { value: "youth", label: "Youth Mentoring" },
+];
+
+interface OrganizationDashboardProps {
+  organizationName?: string;
+}
+
+export default function OrganizationDashboard({ organizationName }: OrganizationDashboardProps) {
+  const { toast } = useToast();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingOpportunity, setEditingOpportunity] = useState<VolunteerOpportunity | null>(null);
+
+  const { data: opportunities = [], isLoading } = useQuery<VolunteerOpportunity[]>({
+    queryKey: ["/api/organization/opportunities"],
+  });
+
+  const form = useForm<InsertOpportunity>({
+    resolver: zodResolver(insertOpportunitySchema),
+    defaultValues: {
+      title: "",
+      location: "",
+      requirements: "",
+      description: "",
+      category: [],
+      skills: [],
+      timeCommitment: "",
+      remote: false,
+      tags: [],
+    },
+  });
+
+  const createMutation = useMutation({
+    mutationFn: async (data: InsertOpportunity) => {
+      const res = await apiRequest("POST", "/api/organization/opportunities", data);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/organization/opportunities"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/opportunities"] });
+      toast({ title: "Opportunity created successfully!" });
+      setIsDialogOpen(false);
+      form.reset();
+    },
+    onError: (error: any) => {
+      toast({ variant: "destructive", title: "Error", description: error.message });
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: InsertOpportunity }) => {
+      const res = await apiRequest("PUT", `/api/organization/opportunities/${id}`, data);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/organization/opportunities"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/opportunities"] });
+      toast({ title: "Opportunity updated successfully!" });
+      setIsDialogOpen(false);
+      setEditingOpportunity(null);
+      form.reset();
+    },
+    onError: (error: any) => {
+      toast({ variant: "destructive", title: "Error", description: error.message });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await apiRequest("DELETE", `/api/organization/opportunities/${id}`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/organization/opportunities"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/opportunities"] });
+      toast({ title: "Opportunity deleted successfully!" });
+    },
+    onError: (error: any) => {
+      toast({ variant: "destructive", title: "Error", description: error.message });
+    },
+  });
+
+  const handleOpenCreate = () => {
+    setEditingOpportunity(null);
+    form.reset({
+      title: "",
+      location: "",
+      requirements: "",
+      description: "",
+      category: [],
+      skills: [],
+      timeCommitment: "",
+      remote: false,
+      tags: [],
+    });
+    setIsDialogOpen(true);
+  };
+
+  const handleOpenEdit = (opportunity: VolunteerOpportunity) => {
+    setEditingOpportunity(opportunity);
+    form.reset({
+      title: opportunity.title,
+      location: opportunity.location,
+      requirements: opportunity.requirements,
+      description: opportunity.description,
+      category: opportunity.category,
+      skills: opportunity.skills,
+      timeCommitment: opportunity.timeCommitment,
+      remote: opportunity.remote,
+      tags: opportunity.tags,
+    });
+    setIsDialogOpen(true);
+  };
+
+  const onSubmit = (data: InsertOpportunity) => {
+    if (editingOpportunity) {
+      updateMutation.mutate({ id: editingOpportunity.id, data });
+    } else {
+      createMutation.mutate(data);
+    }
+  };
+
+  const isPending = createMutation.isPending || updateMutation.isPending;
+
+  return (
+    <div className="container mx-auto py-8 px-4 max-w-6xl">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-bold flex items-center gap-2">
+            <Building2 className="h-8 w-8" />
+            Organization Dashboard
+          </h1>
+          {organizationName && (
+            <p className="text-muted-foreground mt-1">{organizationName}</p>
+          )}
+        </div>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button onClick={handleOpenCreate} data-testid="button-create-opportunity">
+              <Plus className="mr-2 h-4 w-4" />
+              Post Opportunity
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>
+                {editingOpportunity ? "Edit Opportunity" : "Post New Opportunity"}
+              </DialogTitle>
+              <DialogDescription>
+                {editingOpportunity 
+                  ? "Update the details of your volunteer opportunity."
+                  : "Create a new volunteer opportunity for students to discover."}
+              </DialogDescription>
+            </DialogHeader>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="title"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Title</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          placeholder="e.g., Park Cleanup Volunteer"
+                          data-testid="input-opportunity-title"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="location"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Location</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            placeholder="e.g., Riverside Park"
+                            data-testid="input-opportunity-location"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="timeCommitment"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Time Commitment</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            placeholder="e.g., 3 hours/week"
+                            data-testid="input-opportunity-time"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <FormField
+                  control={form.control}
+                  name="requirements"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Requirements</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          placeholder="e.g., Ages 14+, in-person"
+                          data-testid="input-opportunity-requirements"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          {...field}
+                          placeholder="Describe the volunteer opportunity, what volunteers will do, and the impact they'll make..."
+                          rows={4}
+                          data-testid="input-opportunity-description"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="category"
+                  render={() => (
+                    <FormItem>
+                      <FormLabel>Categories</FormLabel>
+                      <div className="grid grid-cols-2 gap-2">
+                        {CATEGORIES.map((cat) => (
+                          <FormField
+                            key={cat.value}
+                            control={form.control}
+                            name="category"
+                            render={({ field }) => {
+                              return (
+                                <FormItem
+                                  key={cat.value}
+                                  className="flex flex-row items-start space-x-3 space-y-0"
+                                >
+                                  <FormControl>
+                                    <Checkbox
+                                      checked={field.value?.includes(cat.value)}
+                                      onCheckedChange={(checked) => {
+                                        return checked
+                                          ? field.onChange([...field.value, cat.value])
+                                          : field.onChange(
+                                              field.value?.filter((value) => value !== cat.value)
+                                            );
+                                      }}
+                                      data-testid={`checkbox-category-${cat.value}`}
+                                    />
+                                  </FormControl>
+                                  <FormLabel className="text-sm font-normal cursor-pointer">
+                                    {cat.label}
+                                  </FormLabel>
+                                </FormItem>
+                              );
+                            }}
+                          />
+                        ))}
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="remote"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                      <div className="space-y-0.5">
+                        <FormLabel>Remote/Virtual Opportunity</FormLabel>
+                        <p className="text-sm text-muted-foreground">
+                          Can volunteers participate remotely?
+                        </p>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          data-testid="switch-remote"
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                <div className="flex justify-end gap-2 pt-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsDialogOpen(false)}
+                    data-testid="button-cancel"
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={isPending} data-testid="button-submit-opportunity">
+                    {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    {editingOpportunity ? "Update" : "Create"} Opportunity
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {isLoading ? (
+        <div className="flex justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      ) : opportunities.length === 0 ? (
+        <Card className="text-center py-12">
+          <CardContent>
+            <Building2 className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+            <h2 className="text-xl font-semibold mb-2">No opportunities yet</h2>
+            <p className="text-muted-foreground mb-4">
+              Start by posting your first volunteer opportunity for students to discover.
+            </p>
+            <Button onClick={handleOpenCreate} data-testid="button-create-first">
+              <Plus className="mr-2 h-4 w-4" />
+              Post Your First Opportunity
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid gap-4">
+          <p className="text-muted-foreground">
+            You have posted {opportunities.length} opportunit{opportunities.length === 1 ? "y" : "ies"}
+          </p>
+          {opportunities.map((opportunity) => (
+            <Card key={opportunity.id} data-testid={`card-opportunity-${opportunity.id}`}>
+              <CardHeader>
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <CardTitle className="text-xl">{opportunity.title}</CardTitle>
+                    <CardDescription className="flex flex-wrap items-center gap-2 mt-2">
+                      <span className="flex items-center gap-1">
+                        <MapPin className="h-4 w-4" />
+                        {opportunity.location}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Clock className="h-4 w-4" />
+                        {opportunity.timeCommitment}
+                      </span>
+                      {opportunity.remote && (
+                        <Badge variant="secondary">Remote</Badge>
+                      )}
+                    </CardDescription>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => handleOpenEdit(opportunity)}
+                      data-testid={`button-edit-${opportunity.id}`}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          data-testid={`button-delete-${opportunity.id}`}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Opportunity?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This will permanently delete "{opportunity.title}". This action cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => deleteMutation.mutate(opportunity.id)}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            data-testid={`button-confirm-delete-${opportunity.id}`}
+                          >
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-3">{opportunity.description}</p>
+                <div className="flex flex-wrap gap-2">
+                  {opportunity.category.map((cat) => (
+                    <Badge key={cat} variant="outline">
+                      {CATEGORIES.find((c) => c.value === cat)?.label || cat}
+                    </Badge>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground mt-3">
+                  Requirements: {opportunity.requirements}
+                </p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

@@ -5,6 +5,7 @@ import { loginSchema, registerSchema, type LoginCredentials, type RegisterCreden
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Form,
   FormControl,
@@ -13,9 +14,10 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Loader2, Eye, EyeOff } from "lucide-react";
+import { Loader2, Eye, EyeOff, User, Building2 } from "lucide-react";
 
 interface LoginProps {
   onLoginSuccess: (username: string) => void;
@@ -46,8 +48,14 @@ export default function Login({ onLoginSuccess }: LoginProps) {
       username: "",
       password: "",
       confirmPassword: "",
+      accountType: "student",
+      organizationName: "",
+      contactEmail: "",
+      organizationDescription: "",
     },
   });
+
+  const watchAccountType = registerForm.watch("accountType");
 
   const onLoginSubmit = async (data: LoginCredentials) => {
     setIsLoading(true);
@@ -77,22 +85,28 @@ export default function Login({ onLoginSuccess }: LoginProps) {
   const onRegisterSubmit = async (data: RegisterCredentials) => {
     setIsLoading(true);
     try {
-      // Only send username and password to the server
-      const res = await apiRequest(
-        "POST",
-        "/api/register",
-        {
-          username: data.username,
-          password: data.password,
-        }
-      );
+      const payload: Record<string, any> = {
+        username: data.username,
+        password: data.password,
+        accountType: data.accountType,
+      };
+      
+      if (data.accountType === "organization") {
+        payload.organizationName = data.organizationName;
+        payload.contactEmail = data.contactEmail;
+        payload.organizationDescription = data.organizationDescription;
+      }
+      
+      const res = await apiRequest("POST", "/api/register", payload);
       
       const response = await res.json() as { success: boolean; username: string };
       
       if (response.success) {
         toast({
           title: "Account created!",
-          description: "You can now sign in with your credentials",
+          description: data.accountType === "organization" 
+            ? "Your organization account is ready. You can now sign in."
+            : "You can now sign in with your credentials",
         });
         setIsRegisterMode(false);
         registerForm.reset();
@@ -218,6 +232,55 @@ export default function Login({ onLoginSuccess }: LoginProps) {
               <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
                 <FormField
                   control={registerForm.control}
+                  name="accountType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Account Type</FormLabel>
+                      <FormControl>
+                        <RadioGroup
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                          className="grid grid-cols-2 gap-4"
+                        >
+                          <div>
+                            <RadioGroupItem
+                              value="student"
+                              id="student"
+                              className="peer sr-only"
+                            />
+                            <label
+                              htmlFor="student"
+                              className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover-elevate peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                              data-testid="radio-student"
+                            >
+                              <User className="mb-2 h-6 w-6" />
+                              <span className="text-sm font-medium">Student</span>
+                            </label>
+                          </div>
+                          <div>
+                            <RadioGroupItem
+                              value="organization"
+                              id="organization"
+                              className="peer sr-only"
+                            />
+                            <label
+                              htmlFor="organization"
+                              className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover-elevate peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                              data-testid="radio-organization"
+                            >
+                              <Building2 className="mb-2 h-6 w-6" />
+                              <span className="text-sm font-medium">Organization</span>
+                            </label>
+                          </div>
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={registerForm.control}
                   name="username"
                   render={({ field }) => (
                     <FormItem>
@@ -302,6 +365,65 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                     </FormItem>
                   )}
                 />
+                
+                {watchAccountType === "organization" && (
+                  <>
+                    <FormField
+                      control={registerForm.control}
+                      name="organizationName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Organization Name</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              placeholder="Your organization's name"
+                              data-testid="input-organization-name"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={registerForm.control}
+                      name="contactEmail"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Contact Email</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              type="email"
+                              placeholder="contact@organization.org"
+                              data-testid="input-contact-email"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={registerForm.control}
+                      name="organizationDescription"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>About Your Organization</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              {...field}
+                              placeholder="Brief description of your organization and mission..."
+                              rows={3}
+                              data-testid="input-organization-description"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </>
+                )}
+                
                 <Button
                   type="submit"
                   className="w-full"

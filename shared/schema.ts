@@ -3,11 +3,18 @@ import { pgTable, text, varchar, integer, timestamp } from "drizzle-orm/pg-core"
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+// Account types
+export type AccountType = "student" | "organization";
+
 // User table for authentication
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
+  accountType: text("account_type").notNull().default("student"),
+  organizationName: text("organization_name"),
+  contactEmail: text("contact_email"),
+  organizationDescription: text("organization_description"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -16,7 +23,12 @@ export const insertUserSchema = createInsertSchema(users).pick({
   password: true,
 });
 
-export type InsertUser = z.infer<typeof insertUserSchema>;
+export type InsertUser = z.infer<typeof insertUserSchema> & {
+  accountType?: AccountType;
+  organizationName?: string;
+  contactEmail?: string;
+  organizationDescription?: string;
+};
 export type User = typeof users.$inferSelect;
 
 // User Profile - stores quiz results and preferences
@@ -55,7 +67,23 @@ export interface VolunteerOpportunity {
   timeCommitment: string; // e.g., "Saturday morning", "1 hr/week"
   remote: boolean;
   tags: string[]; // e.g., ["college_application", "leadership"]
+  organizationId?: string; // ID of organization that created this opportunity
+  createdAt?: string;
 }
+
+export const insertOpportunitySchema = z.object({
+  title: z.string().min(1, "Title required"),
+  location: z.string().min(1, "Location required"),
+  requirements: z.string().min(1, "Requirements required"),
+  description: z.string().min(10, "Description must be at least 10 characters"),
+  category: z.array(z.string()).min(1, "Select at least one category"),
+  skills: z.array(z.string()).default([]),
+  timeCommitment: z.string().min(1, "Time commitment required"),
+  remote: z.boolean().default(false),
+  tags: z.array(z.string()).default([]),
+});
+
+export type InsertOpportunity = z.infer<typeof insertOpportunitySchema>;
 
 // Volunteer Hour Entry
 export interface VolunteerHour {
@@ -126,9 +154,21 @@ export const registerSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   confirmPassword: z.string(),
+  accountType: z.enum(["student", "organization"]).default("student"),
+  organizationName: z.string().optional(),
+  contactEmail: z.string().email().optional().or(z.literal("")),
+  organizationDescription: z.string().optional(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
+}).refine((data) => {
+  if (data.accountType === "organization") {
+    return data.organizationName && data.organizationName.length >= 2;
+  }
+  return true;
+}, {
+  message: "Organization name is required",
+  path: ["organizationName"],
 });
 
 export type RegisterCredentials = z.infer<typeof registerSchema>;

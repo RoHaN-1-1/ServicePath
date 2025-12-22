@@ -7,6 +7,7 @@ import {
   insertUserProfileSchema,
   insertVolunteerHourSchema,
   insertReflectionSchema,
+  insertOpportunitySchema,
 } from "@shared/schema";
 import { generateRecommendations } from "./openai";
 import bcrypt from "bcryptjs";
@@ -49,6 +50,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         user = await storage.createUser({
           username: HARDCODED_USERNAME,
           password: hashedPassword,
+          accountType: "student", // Ensure demo account is a student
         });
       }
       
@@ -75,7 +77,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         path: "/",
       });
       
-      res.json({ success: true, username: user.username });
+      // Return account type for frontend routing (default to "student" for legacy users)
+      res.json({ 
+        success: true, 
+        username: user.username,
+        accountType: user.accountType || "student"
+      });
     } catch (error: any) {
       res.status(400).json({ error: error.message });
     }
@@ -84,25 +91,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // POST /api/register - Register new user
   app.post("/api/register", async (req: Request, res: Response) => {
     try {
-      // Validate with insertUserSchema (only username and password)
-      const credentials = insertUserSchema.parse(req.body);
+      const { username, password, accountType, organizationName, contactEmail, organizationDescription } = req.body;
+      
+      // Validate username
+      if (!username || typeof username !== "string" || username.length < 3) {
+        return res.status(400).json({ error: "Username must be at least 3 characters" });
+      }
+      
+      // Validate password
+      if (!password || typeof password !== "string" || password.length < 6) {
+        return res.status(400).json({ error: "Password must be at least 6 characters" });
+      }
+      
+      // Validate account type
+      const validAccountType = accountType === "organization" ? "organization" : "student";
+      
+      // Validate organization fields if applicable
+      if (validAccountType === "organization") {
+        if (!organizationName || typeof organizationName !== "string" || organizationName.length < 2) {
+          return res.status(400).json({ error: "Organization name is required (at least 2 characters)" });
+        }
+        if (contactEmail && typeof contactEmail === "string" && contactEmail.length > 0) {
+          // Basic email format validation
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailRegex.test(contactEmail)) {
+            return res.status(400).json({ error: "Invalid email format" });
+          }
+        }
+      }
       
       // Check if username already exists
-      const existingUser = await storage.getUserByUsername(credentials.username);
+      const existingUser = await storage.getUserByUsername(username);
       if (existingUser) {
         return res.status(400).json({ error: "Username already exists" });
       }
       
       // Hash password before storing
-      const hashedPassword = await bcrypt.hash(credentials.password, 10);
+      const hashedPassword = await bcrypt.hash(password, 10);
       
       // Create new user with hashed password
       const user = await storage.createUser({
-        username: credentials.username,
+        username,
         password: hashedPassword,
+        accountType: validAccountType,
+        organizationName: validAccountType === "organization" ? organizationName : undefined,
+        contactEmail: validAccountType === "organization" && contactEmail ? contactEmail : undefined,
+        organizationDescription: validAccountType === "organization" && organizationDescription ? organizationDescription : undefined,
       });
       
-      res.json({ success: true, username: user.username });
+      res.json({ success: true, username: user.username, accountType: user.accountType });
     } catch (error: any) {
       res.status(400).json({ error: error.message });
     }
@@ -118,10 +155,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "User not found" });
       }
       
-      // Return username and createdAt, but not password
+      // Return user info, but not password
+      // Default accountType to "student" for legacy users without accountType
       res.json({ 
         username: user.username,
-        createdAt: user.createdAt
+        createdAt: user.createdAt,
+        accountType: user.accountType || "student",
+        organizationName: user.organizationName || null,
+        contactEmail: user.contactEmail || null,
+        organizationDescription: user.organizationDescription || null,
       });
     } catch (error: any) {
       res.status(500).json({ error: error.message });
@@ -320,6 +362,110 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({ link });
     } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Middleware to check if user is an organization
+  async function requireOrganization(req: Request, res: Response, next: Function) {
+    try {
+      const userId = (req as any).userId;
+      
+      if (!userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+      
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(401).json({ error: "User not found" });
+      }
+      
+      // Strictly check account type - must be "organization"
+      if (user.accountType !== "organization") {
+        return res.status(403).json({ error: "Only organizations can manage opportunities" });
+      }
+      
+      (req as any).user = user;
+      next();
+    } catch (error: any) {
+      console.error("requireOrganization error:", error);
+      return res.status(500).json({ error: "Authorization check failed" });
+    }
+  }
+
+  // GET /api/organization/opportunities - Get opportunities created by this organization
+  app.get("/api/organization/opportunities", requireAuth, requireOrganization, async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).userId;
+      const opportunities = await storage.getOpportunitiesByOrganization(userId);
+      res.json(opportunities);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // POST /api/organization/opportunities - Create a new opportunity
+  app.post("/api/organization/opportunities", requireAuth, requireOrganization, async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).userId;
+      const user = (req as any).user;
+      const opportunityData = insertOpportunitySchema.parse(req.body);
+      
+      const hostedBy = user.organizationName || user.username;
+      const opportunity = await storage.createOpportunity(userId, opportunityData, hostedBy);
+      
+      res.json(opportunity);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  // PUT /api/organization/opportunities/:id - Update an opportunity
+  app.put("/api/organization/opportunities/:id", requireAuth, requireOrganization, async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).userId;
+      const opportunityId = req.params.id;
+      
+      // Validate input first before any storage operations
+      const parseResult = insertOpportunitySchema.safeParse(req.body);
+      if (!parseResult.success) {
+        return res.status(400).json({ error: parseResult.error.errors[0]?.message || "Invalid opportunity data" });
+      }
+      
+      const opportunity = await storage.updateOpportunity(opportunityId, userId, parseResult.data);
+      
+      if (!opportunity) {
+        return res.status(404).json({ error: "Opportunity not found or you don't have permission to edit it" });
+      }
+      
+      res.json(opportunity);
+    } catch (error: any) {
+      console.error("Update opportunity error:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // DELETE /api/organization/opportunities/:id - Delete an opportunity
+  app.delete("/api/organization/opportunities/:id", requireAuth, requireOrganization, async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).userId;
+      const opportunityId = req.params.id;
+      
+      // Validate opportunityId
+      if (!opportunityId || typeof opportunityId !== "string") {
+        return res.status(400).json({ error: "Invalid opportunity ID" });
+      }
+      
+      const deleted = await storage.deleteOpportunity(opportunityId, userId);
+      
+      if (!deleted) {
+        return res.status(404).json({ error: "Opportunity not found or you don't have permission to delete it" });
+      }
+      
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error("Delete opportunity error:", error);
       res.status(500).json({ error: error.message });
     }
   });

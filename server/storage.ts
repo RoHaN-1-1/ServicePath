@@ -4,6 +4,7 @@ import {
   type UserProfile,
   type InsertUserProfile,
   type VolunteerOpportunity,
+  type InsertOpportunity,
   type VolunteerHour,
   type InsertVolunteerHour,
   type Reflection,
@@ -29,6 +30,10 @@ export interface IStorage {
   // Opportunities methods
   getAllOpportunities(): Promise<VolunteerOpportunity[]>;
   searchOpportunities(query: string): Promise<VolunteerOpportunity[]>;
+  getOpportunitiesByOrganization(organizationId: string): Promise<VolunteerOpportunity[]>;
+  createOpportunity(organizationId: string, opportunity: InsertOpportunity, hostedBy: string): Promise<VolunteerOpportunity>;
+  updateOpportunity(id: string, organizationId: string, opportunity: InsertOpportunity): Promise<VolunteerOpportunity | undefined>;
+  deleteOpportunity(id: string, organizationId: string): Promise<boolean>;
   
   // Hours methods
   getHours(userId: string): Promise<VolunteerHour[]>;
@@ -171,7 +176,15 @@ export class MemStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = randomUUID();
-    const user: User = { ...insertUser, id, createdAt: new Date() };
+    const user: User = { 
+      ...insertUser, 
+      id, 
+      createdAt: new Date(),
+      accountType: insertUser.accountType || "student",
+      organizationName: insertUser.organizationName || null,
+      contactEmail: insertUser.contactEmail || null,
+      organizationDescription: insertUser.organizationDescription || null,
+    };
     this.users.set(id, user);
     return user;
   }
@@ -216,6 +229,43 @@ export class MemStorage implements IStorage {
       opp.skills.some(skill => skill.toLowerCase().includes(lowerQuery)) ||
       opp.hostedBy.toLowerCase().includes(lowerQuery)
     );
+  }
+
+  async getOpportunitiesByOrganization(organizationId: string): Promise<VolunteerOpportunity[]> {
+    return this.opportunities.filter(opp => opp.organizationId === organizationId);
+  }
+
+  async createOpportunity(organizationId: string, opportunity: InsertOpportunity, hostedBy: string): Promise<VolunteerOpportunity> {
+    const newOpportunity: VolunteerOpportunity = {
+      id: randomUUID(),
+      ...opportunity,
+      hostedBy,
+      organizationId,
+      createdAt: new Date().toISOString(),
+    };
+    this.opportunities.push(newOpportunity);
+    return newOpportunity;
+  }
+
+  async updateOpportunity(id: string, organizationId: string, opportunity: InsertOpportunity): Promise<VolunteerOpportunity | undefined> {
+    const index = this.opportunities.findIndex(opp => opp.id === id && opp.organizationId === organizationId);
+    if (index === -1) return undefined;
+    
+    const existingOpp = this.opportunities[index];
+    const updatedOpportunity: VolunteerOpportunity = {
+      ...existingOpp,
+      ...opportunity,
+    };
+    this.opportunities[index] = updatedOpportunity;
+    return updatedOpportunity;
+  }
+
+  async deleteOpportunity(id: string, organizationId: string): Promise<boolean> {
+    const index = this.opportunities.findIndex(opp => opp.id === id && opp.organizationId === organizationId);
+    if (index === -1) return false;
+    
+    this.opportunities.splice(index, 1);
+    return true;
   }
 
   // Hours methods

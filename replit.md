@@ -18,7 +18,20 @@ VolunteerMatch is a web application designed to help high school students discov
 - 20 volunteer opportunities loaded from `volunteer_opportunities.csv`
 - Opportunities organized by 8 main categories mapped to user interest fields
 
-**Recent Updates (November 23, 2025):**
+**Recent Updates (December 22, 2025):**
+- **Organization Account Type**: Added separate account type for organizations to post volunteer opportunities
+  - Two account types: "Student" and "Organization"
+  - Registration form allows choosing account type with visual radio buttons
+  - Organizations provide: organization name, contact email, description
+  - Organization-specific dashboard for managing posted opportunities
+  - API routes: POST/PUT/DELETE /api/organization/opportunities
+  - Organizations can create, edit, and delete their own opportunities
+  - All organization-created opportunities appear in student browse/search
+- **Password Visibility Toggle**: Added eye icon toggle to show/hide passwords in login and registration forms
+  - Positioned inside text fields on the right side
+  - Works for password, confirm password, and organization form fields
+
+**Previous Updates (November 23, 2025):**
 - **AI Matching Test Cases**: Created comprehensive test case documentation (AI_MATCHING_TEST_CASES.md)
   - 9 student personas with diverse interests, skills, and availability patterns
   - Validates AI-powered matching accuracy with ±15 point tolerance for GPT-5 variability
