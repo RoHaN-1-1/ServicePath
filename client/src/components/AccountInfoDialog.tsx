@@ -23,7 +23,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Clock, Calendar, Trash2, AlertTriangle } from "lucide-react";
+import { Clock, Calendar, Trash2, AlertTriangle, User, Building2 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { VolunteerHour } from "@shared/schema";
@@ -31,6 +31,8 @@ import type { VolunteerHour } from "@shared/schema";
 interface UserInfo {
   username: string;
   createdAt: string;
+  accountType: "student" | "organization";
+  organizationName?: string;
 }
 
 interface AccountInfoDialogProps {
@@ -137,6 +139,33 @@ export function AccountInfoDialog({ open, onOpenChange, onAccountDeleted }: Acco
               <p className="text-lg font-medium" data-testid="text-username-display">
                 {userLoading ? <Skeleton className="h-6 w-32" /> : `@${userInfo?.username}`}
               </p>
+            </div>
+
+            {/* Account Type */}
+            <div>
+              <Label className="text-sm text-muted-foreground">Account Type</Label>
+              {userLoading ? (
+                <Skeleton className="h-6 w-40" />
+              ) : (
+                <div className="flex items-center gap-2 mt-1" data-testid="text-account-type">
+                  {userInfo?.accountType === "organization" ? (
+                    <>
+                      <Building2 className="h-5 w-5 text-primary" />
+                      <span className="text-lg font-medium">Organization</span>
+                    </>
+                  ) : (
+                    <>
+                      <User className="h-5 w-5 text-primary" />
+                      <span className="text-lg font-medium">Student</span>
+                    </>
+                  )}
+                </div>
+              )}
+              {userInfo?.accountType === "organization" && userInfo?.organizationName && (
+                <p className="text-sm text-muted-foreground mt-1" data-testid="text-organization-name">
+                  {userInfo.organizationName}
+                </p>
+              )}
             </div>
 
             {/* Statistics */}
