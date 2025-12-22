@@ -163,20 +163,18 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                             autoComplete="current-password"
                             className="pr-10"
                           />
-                          <Button
+                          <button
                             type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                            className="absolute right-3 top-1/2 -translate-y-1/2"
                             onClick={() => setShowPassword(!showPassword)}
                             data-testid="button-toggle-password"
                           >
                             {showPassword ? (
-                              <EyeOff className="h-4 w-4 text-muted-foreground" />
+                              <EyeOff className="h-5 w-5 text-muted-foreground" />
                             ) : (
-                              <Eye className="h-4 w-4 text-muted-foreground" />
+                              <Eye className="h-5 w-5 text-muted-foreground" />
                             )}
-                          </Button>
+                          </button>
                         </div>
                       </FormControl>
                       <FormMessage />
@@ -252,20 +250,18 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                             autoComplete="new-password"
                             className="pr-10"
                           />
-                          <Button
+                          <button
                             type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                            className="absolute right-3 top-1/2 -translate-y-1/2"
                             onClick={() => setShowPassword(!showPassword)}
                             data-testid="button-toggle-password"
                           >
                             {showPassword ? (
-                              <EyeOff className="h-4 w-4 text-muted-foreground" />
+                              <EyeOff className="h-5 w-5 text-muted-foreground" />
                             ) : (
-                              <Eye className="h-4 w-4 text-muted-foreground" />
+                              <Eye className="h-5 w-5 text-muted-foreground" />
                             )}
-                          </Button>
+                          </button>
                         </div>
                       </FormControl>
                       <FormMessage />
@@ -288,20 +284,18 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                             autoComplete="new-password"
                             className="pr-10"
                           />
-                          <Button
+                          <button
                             type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                            className="absolute right-3 top-1/2 -translate-y-1/2"
                             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                             data-testid="button-toggle-confirm-password"
                           >
                             {showConfirmPassword ? (
-                              <EyeOff className="h-4 w-4 text-muted-foreground" />
+                              <EyeOff className="h-5 w-5 text-muted-foreground" />
                             ) : (
-                              <Eye className="h-4 w-4 text-muted-foreground" />
+                              <Eye className="h-5 w-5 text-muted-foreground" />
                             )}
-                          </Button>
+                          </button>
                         </div>
                       </FormControl>
                       <FormMessage />
