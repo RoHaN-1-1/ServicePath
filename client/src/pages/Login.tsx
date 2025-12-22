@@ -161,6 +161,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                             placeholder="Enter your password"
                             data-testid="input-password"
                             autoComplete="current-password"
+                            className="pr-10"
                           />
                           <Button
                             type="button"
@@ -249,6 +250,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                             placeholder="Create a password"
                             data-testid="input-password"
                             autoComplete="new-password"
+                            className="pr-10"
                           />
                           <Button
                             type="button"
@@ -284,6 +286,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                             placeholder="Confirm your password"
                             data-testid="input-confirm-password"
                             autoComplete="new-password"
+                            className="pr-10"
                           />
                           <Button
                             type="button"
