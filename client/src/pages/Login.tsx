@@ -99,17 +99,17 @@ export default function Login({ onLoginSuccess }: LoginProps) {
       
       const res = await apiRequest("POST", "/api/register", payload);
       
-      const response = await res.json() as { success: boolean; username: string };
+      const response = await res.json() as { success: boolean; username: string; accountType: string };
       
       if (response.success) {
         toast({
           title: "Account created!",
           description: data.accountType === "organization" 
-            ? "Your organization account is ready. You can now sign in."
-            : "You can now sign in with your credentials",
+            ? "Welcome! Your organization dashboard is ready."
+            : "Welcome! Let's get started.",
         });
-        setIsRegisterMode(false);
-        registerForm.reset();
+        // Automatically log in the user after registration
+        onLoginSuccess(response.username);
       }
     } catch (error: any) {
       toast({

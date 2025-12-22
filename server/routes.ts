@@ -139,6 +139,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         organizationDescription: validAccountType === "organization" && organizationDescription ? organizationDescription : undefined,
       });
       
+      // Automatically log in the user after registration
+      const sessionId = storage.createSession(user.id);
+      
+      res.cookie("sessionId", sessionId, {
+        httpOnly: true,
+        maxAge: 24 * 60 * 60 * 1000, // 24 hours
+        sameSite: "lax",
+        path: "/",
+      });
+      
       res.json({ success: true, username: user.username, accountType: user.accountType });
     } catch (error: any) {
       res.status(400).json({ error: error.message });

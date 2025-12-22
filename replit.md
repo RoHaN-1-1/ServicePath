@@ -30,6 +30,9 @@ VolunteerMatch is a web application designed to help high school students discov
 - **Password Visibility Toggle**: Added eye icon toggle to show/hide passwords in login and registration forms
   - Positioned inside text fields on the right side
   - Works for password, confirm password, and organization form fields
+- **Auto-login After Registration**: Users are automatically logged in after creating an account
+  - No need to manually sign in after registration
+  - Redirects directly to the appropriate dashboard (student or organization)
 
 **Previous Updates (November 23, 2025):**
 - **AI Matching Test Cases**: Created comprehensive test case documentation (AI_MATCHING_TEST_CASES.md)
