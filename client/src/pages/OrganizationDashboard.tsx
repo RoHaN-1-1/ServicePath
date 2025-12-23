@@ -51,17 +51,26 @@ const CATEGORIES = [
   { value: "youth", label: "Youth Mentoring" },
 ];
 
+interface UserInfo {
+  organizationName?: string;
+  organizationDescription?: string;
+}
+
 interface OrganizationDashboardProps {
   organizationName?: string;
   organizationDescription?: string;
 }
 
-export default function OrganizationDashboard({ organizationName, organizationDescription }: OrganizationDashboardProps) {
+export default function OrganizationDashboard({ organizationName }: OrganizationDashboardProps) {
   const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingOpportunity, setEditingOpportunity] = useState<VolunteerOpportunity | null>(null);
   const [isAnnouncementDialogOpen, setIsAnnouncementDialogOpen] = useState(false);
   const [announcementContent, setAnnouncementContent] = useState("");
+
+  const { data: userInfo } = useQuery<UserInfo>({
+    queryKey: ["/api/me"],
+  });
 
   const { data: opportunities = [], isLoading } = useQuery<VolunteerOpportunity[]>({
     queryKey: ["/api/organization/opportunities"],
@@ -391,7 +400,7 @@ export default function OrganizationDashboard({ organizationName, organizationDe
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground" data-testid="text-org-description">
-                {organizationDescription || "No description provided."}
+                {userInfo?.organizationDescription || "No description provided."}
               </p>
             </CardContent>
           </Card>
