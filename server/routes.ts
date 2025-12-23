@@ -327,6 +327,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // DELETE /api/hours/:id - Delete a volunteer hour entry
+  app.delete("/api/hours/:id", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).userId;
+      const hourId = req.params.id;
+      
+      const deleted = await storage.deleteHour(userId, hourId);
+      
+      if (!deleted) {
+        return res.status(404).json({ error: "Hour entry not found" });
+      }
+      
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // GET /api/reflections - Get user's reflections
   app.get("/api/reflections", requireAuth, async (req: Request, res: Response) => {
     try {
@@ -350,6 +368,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(reflection);
     } catch (error: any) {
       res.status(400).json({ error: error.message });
+    }
+  });
+
+  // DELETE /api/reflections/:id - Delete a reflection
+  app.delete("/api/reflections/:id", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).userId;
+      const reflectionId = req.params.id;
+      
+      const deleted = await storage.deleteReflection(userId, reflectionId);
+      
+      if (!deleted) {
+        return res.status(404).json({ error: "Reflection not found" });
+      }
+      
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
     }
   });
 

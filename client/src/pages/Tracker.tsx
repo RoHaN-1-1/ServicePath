@@ -26,7 +26,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Plus, Calendar, Clock, CheckCircle2, XCircle } from "lucide-react";
+import { Plus, Calendar, Clock, CheckCircle2, XCircle, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { SignaturePad } from "@/components/SignaturePad";
 
@@ -64,6 +64,24 @@ export default function Tracker() {
       toast({
         variant: "destructive",
         title: "Failed to log hours",
+        description: error.message || "Please try again",
+      });
+    },
+  });
+
+  const deleteHourMutation = useMutation({
+    mutationFn: (hourId: string) => apiRequest("DELETE", `/api/hours/${hourId}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/hours"] });
+      toast({
+        title: "Entry deleted",
+        description: "The hour entry has been removed.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        variant: "destructive",
+        title: "Failed to delete",
         description: error.message || "Please try again",
       });
     },
@@ -259,6 +277,7 @@ export default function Tracker() {
                       <TableHead>Hours</TableHead>
                       <TableHead>Signature</TableHead>
                       <TableHead>Status</TableHead>
+                      <TableHead className="w-16"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -299,6 +318,17 @@ export default function Tracker() {
                               Pending
                             </Badge>
                           )}
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => deleteHourMutation.mutate(entry.id)}
+                            disabled={deleteHourMutation.isPending}
+                            data-testid={`button-delete-hour-${entry.id}`}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))}

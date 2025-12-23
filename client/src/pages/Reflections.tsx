@@ -18,7 +18,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Plus, BookOpen, Calendar } from "lucide-react";
+import { Plus, BookOpen, Calendar, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 
 export default function Reflections() {
@@ -52,6 +52,24 @@ export default function Reflections() {
       toast({
         variant: "destructive",
         title: "Failed to save reflection",
+        description: error.message || "Please try again",
+      });
+    },
+  });
+
+  const deleteReflectionMutation = useMutation({
+    mutationFn: (reflectionId: string) => apiRequest("DELETE", `/api/reflections/${reflectionId}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/reflections"] });
+      toast({
+        title: "Reflection deleted",
+        description: "Your reflection has been removed.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        variant: "destructive",
+        title: "Failed to delete",
         description: error.message || "Please try again",
       });
     },
@@ -173,6 +191,15 @@ export default function Reflections() {
                         {format(new Date(reflection.date), "MMMM d, yyyy")}
                       </div>
                     </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => deleteReflectionMutation.mutate(reflection.id)}
+                      disabled={deleteReflectionMutation.isPending}
+                      data-testid={`button-delete-reflection-${reflection.id}`}
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
                   </div>
                 </CardHeader>
                 <CardContent>

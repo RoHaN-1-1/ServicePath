@@ -38,10 +38,12 @@ export interface IStorage {
   // Hours methods
   getHours(userId: string): Promise<VolunteerHour[]>;
   addHour(userId: string, hour: InsertVolunteerHour): Promise<VolunteerHour>;
+  deleteHour(userId: string, hourId: string): Promise<boolean>;
   
   // Reflections methods
   getReflections(userId: string): Promise<Reflection[]>;
   addReflection(userId: string, reflection: InsertReflection): Promise<Reflection>;
+  deleteReflection(userId: string, reflectionId: string): Promise<boolean>;
   
   // Share methods
   createShareLink(userId: string, content: string): Promise<ShareableLink>;
@@ -285,6 +287,16 @@ export class MemStorage implements IStorage {
     return newHour;
   }
 
+  async deleteHour(userId: string, hourId: string): Promise<boolean> {
+    const userHours = this.hours.get(userId) || [];
+    const index = userHours.findIndex(h => h.id === hourId);
+    if (index === -1) return false;
+    
+    userHours.splice(index, 1);
+    this.hours.set(userId, userHours);
+    return true;
+  }
+
   // Reflections methods
   async getReflections(userId: string): Promise<Reflection[]> {
     return this.reflections.get(userId) || [];
@@ -301,6 +313,16 @@ export class MemStorage implements IStorage {
     userReflections.push(newReflection);
     this.reflections.set(userId, userReflections);
     return newReflection;
+  }
+
+  async deleteReflection(userId: string, reflectionId: string): Promise<boolean> {
+    const userReflections = this.reflections.get(userId) || [];
+    const index = userReflections.findIndex(r => r.id === reflectionId);
+    if (index === -1) return false;
+    
+    userReflections.splice(index, 1);
+    this.reflections.set(userId, userReflections);
+    return true;
   }
 
   // Share methods
