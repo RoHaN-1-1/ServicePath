@@ -237,15 +237,6 @@ Generated on ${new Date().toLocaleDateString()}
                 Download Text Summary
               </Button>
             </div>
-
-            <div className="p-4 bg-muted/50 rounded-lg text-sm text-muted-foreground">
-              <p className="font-medium mb-2">💡 Tips for College Applications:</p>
-              <ul className="space-y-1 list-disc list-inside">
-                <li>Use your reflections to write compelling essays</li>
-                <li>Include verified hours in your activities section</li>
-                <li>Download summaries for your counselor or recommenders</li>
-              </ul>
-            </div>
           </CardContent>
         </Card>
       </div>
