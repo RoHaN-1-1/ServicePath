@@ -21,6 +21,7 @@ interface UserInfo {
   username: string;
   accountType: AccountType;
   organizationName?: string;
+  organizationDescription?: string;
 }
 
 function Router() {
@@ -128,7 +129,7 @@ function Router() {
           <Switch>
             <Route path="/" component={() => <Redirect to="/dashboard" />} />
             <Route path="/dashboard" component={() => (
-              <OrganizationDashboard organizationName={userInfo.organizationName} />
+              <OrganizationDashboard organizationName={userInfo.organizationName} organizationDescription={userInfo.organizationDescription} />
             )} />
             <Route component={NotFound} />
           </Switch>
