@@ -134,6 +134,20 @@ export interface ShareableLink {
   createdAt: string;
 }
 
+// Organization Announcement
+export interface Announcement {
+  id: string;
+  organizationId: string;
+  content: string;
+  createdAt: string;
+}
+
+export const insertAnnouncementSchema = z.object({
+  content: z.string().min(1, "Announcement content required").max(500, "Announcement too long (max 500 characters)"),
+});
+
+export type InsertAnnouncement = z.infer<typeof insertAnnouncementSchema>;
+
 // AI Recommendation Response
 export interface OpportunityMatch {
   opportunity: VolunteerOpportunity;

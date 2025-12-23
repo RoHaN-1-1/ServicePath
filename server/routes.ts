@@ -542,6 +542,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // GET /api/organization/announcements - Get organization announcements
+  app.get("/api/organization/announcements", requireAuth, requireOrganization, async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).userId;
+      const announcements = await storage.getAnnouncements(userId);
+      res.json(announcements);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // POST /api/organization/announcements - Create an announcement
+  app.post("/api/organization/announcements", requireAuth, requireOrganization, async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).userId;
+      const { content } = req.body;
+      
+      if (!content || typeof content !== "string" || content.length < 1) {
+        return res.status(400).json({ error: "Announcement content required" });
+      }
+      
+      if (content.length > 500) {
+        return res.status(400).json({ error: "Announcement too long (max 500 characters)" });
+      }
+      
+      const announcement = await storage.createAnnouncement(userId, content);
+      res.json(announcement);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // DELETE /api/organization/announcements/:id - Delete an announcement
+  app.delete("/api/organization/announcements/:id", requireAuth, requireOrganization, async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).userId;
+      const announcementId = req.params.id;
+      
+      const deleted = await storage.deleteAnnouncement(userId, announcementId);
+      
+      if (!deleted) {
+        return res.status(404).json({ error: "Announcement not found" });
+      }
+      
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // PUT /api/organization/bio - Update organization bio
+  app.put("/api/organization/bio", requireAuth, requireOrganization, async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).userId;
+      const { bio } = req.body;
+      
+      if (typeof bio !== "string") {
+        return res.status(400).json({ error: "Bio must be a string" });
+      }
+      
+      const updatedUser = await storage.updateOrganizationBio(userId, bio);
+      
+      if (!updatedUser) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      res.json({ success: true, organizationDescription: updatedUser.organizationDescription });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;

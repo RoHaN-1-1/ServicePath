@@ -4,7 +4,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -20,10 +19,11 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Clock, Calendar, Trash2, AlertTriangle, User, Building2 } from "lucide-react";
+import { Clock, Calendar, Trash2, AlertTriangle, User, Building2, Pencil, Loader2 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { VolunteerHour } from "@shared/schema";
@@ -33,6 +33,7 @@ interface UserInfo {
   createdAt: string;
   accountType: "student" | "organization";
   organizationName?: string;
+  organizationDescription?: string;
 }
 
 interface AccountInfoDialogProps {
@@ -44,6 +45,8 @@ interface AccountInfoDialogProps {
 export function AccountInfoDialog({ open, onOpenChange, onAccountDeleted }: AccountInfoDialogProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deletePassword, setDeletePassword] = useState("");
+  const [isEditingBio, setIsEditingBio] = useState(false);
+  const [bioContent, setBioContent] = useState("");
   const { toast } = useToast();
 
   const { data: userInfo, isLoading: userLoading } = useQuery<UserInfo>({
@@ -74,6 +77,25 @@ export function AccountInfoDialog({ open, onOpenChange, onAccountDeleted }: Acco
         variant: "destructive",
         title: "Deletion failed",
         description: error.message || "Incorrect password",
+      });
+    },
+  });
+
+  const updateBioMutation = useMutation({
+    mutationFn: async (bio: string) => {
+      const res = await apiRequest("PUT", "/api/organization/bio", { bio });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/me"] });
+      toast({ title: "Bio updated successfully!" });
+      setIsEditingBio(false);
+    },
+    onError: (error: any) => {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "Failed to update bio",
       });
     },
   });
@@ -119,6 +141,20 @@ export function AccountInfoDialog({ open, onOpenChange, onAccountDeleted }: Acco
   const handleCloseDeleteDialog = () => {
     setShowDeleteConfirm(false);
     setDeletePassword("");
+  };
+
+  const handleEditBio = () => {
+    setBioContent(userInfo?.organizationDescription || "");
+    setIsEditingBio(true);
+  };
+
+  const handleSaveBio = () => {
+    updateBioMutation.mutate(bioContent);
+  };
+
+  const handleCancelEditBio = () => {
+    setIsEditingBio(false);
+    setBioContent("");
   };
 
   return (
@@ -167,6 +203,61 @@ export function AccountInfoDialog({ open, onOpenChange, onAccountDeleted }: Acco
                 </p>
               )}
             </div>
+
+            {/* Organization Bio Section (only for org accounts) */}
+            {userInfo?.accountType === "organization" && (
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <Label className="text-sm text-muted-foreground">Organization Bio</Label>
+                  {!isEditingBio && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleEditBio}
+                      className="h-7 px-2"
+                      data-testid="button-edit-bio"
+                    >
+                      <Pencil className="h-3 w-3 mr-1" />
+                      Edit Bio
+                    </Button>
+                  )}
+                </div>
+                {isEditingBio ? (
+                  <div className="space-y-2">
+                    <Textarea
+                      value={bioContent}
+                      onChange={(e) => setBioContent(e.target.value)}
+                      placeholder="Describe your organization..."
+                      rows={3}
+                      data-testid="input-bio"
+                    />
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleCancelEditBio}
+                        data-testid="button-cancel-bio"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={handleSaveBio}
+                        disabled={updateBioMutation.isPending}
+                        data-testid="button-save-bio"
+                      >
+                        {updateBioMutation.isPending && <Loader2 className="mr-1 h-3 w-3 animate-spin" />}
+                        Save
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-sm" data-testid="text-bio">
+                    {userInfo?.organizationDescription || "No bio set."}
+                  </p>
+                )}
+              </div>
+            )}
 
             {/* Statistics */}
             <div className="space-y-3">

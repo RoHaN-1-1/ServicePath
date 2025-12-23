@@ -4,8 +4,8 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertOpportunitySchema, type VolunteerOpportunity, type InsertOpportunity } from "@shared/schema";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { insertOpportunitySchema, type VolunteerOpportunity, type InsertOpportunity, type Announcement } from "@shared/schema";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -38,7 +38,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Plus, Pencil, Trash2, MapPin, Clock, Loader2, Users, Calendar } from "lucide-react";
+import { Plus, Pencil, Trash2, MapPin, Clock, Loader2, Users, Calendar, Megaphone } from "lucide-react";
 
 const CATEGORIES = [
   { value: "environment", label: "Environment & Nature" },
@@ -60,9 +60,15 @@ export default function OrganizationDashboard({ organizationName, organizationDe
   const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingOpportunity, setEditingOpportunity] = useState<VolunteerOpportunity | null>(null);
+  const [isAnnouncementDialogOpen, setIsAnnouncementDialogOpen] = useState(false);
+  const [announcementContent, setAnnouncementContent] = useState("");
 
   const { data: opportunities = [], isLoading } = useQuery<VolunteerOpportunity[]>({
     queryKey: ["/api/organization/opportunities"],
+  });
+
+  const { data: announcements = [] } = useQuery<Announcement[]>({
+    queryKey: ["/api/organization/announcements"],
   });
 
   const form = useForm<InsertOpportunity>({
@@ -130,6 +136,36 @@ export default function OrganizationDashboard({ organizationName, organizationDe
     },
   });
 
+  const createAnnouncementMutation = useMutation({
+    mutationFn: async (content: string) => {
+      const res = await apiRequest("POST", "/api/organization/announcements", { content });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/organization/announcements"] });
+      toast({ title: "Announcement posted!" });
+      setIsAnnouncementDialogOpen(false);
+      setAnnouncementContent("");
+    },
+    onError: (error: any) => {
+      toast({ variant: "destructive", title: "Error", description: error.message });
+    },
+  });
+
+  const deleteAnnouncementMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await apiRequest("DELETE", `/api/organization/announcements/${id}`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/organization/announcements"] });
+      toast({ title: "Announcement deleted" });
+    },
+    onError: (error: any) => {
+      toast({ variant: "destructive", title: "Error", description: error.message });
+    },
+  });
+
   const handleOpenCreate = () => {
     setEditingOpportunity(null);
     form.reset({
@@ -168,6 +204,14 @@ export default function OrganizationDashboard({ organizationName, organizationDe
     } else {
       createMutation.mutate(data);
     }
+  };
+
+  const handlePostAnnouncement = () => {
+    if (!announcementContent.trim()) {
+      toast({ variant: "destructive", title: "Error", description: "Announcement cannot be empty" });
+      return;
+    }
+    createAnnouncementMutation.mutate(announcementContent.trim());
   };
 
   const isPending = createMutation.isPending || updateMutation.isPending;
@@ -294,12 +338,49 @@ export default function OrganizationDashboard({ organizationName, organizationDe
           {/* Announcements Section */}
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg">Announcements</CardTitle>
+              <div className="flex items-center justify-between gap-2">
+                <CardTitle className="text-lg">Announcements</CardTitle>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsAnnouncementDialogOpen(true)}
+                  data-testid="button-add-announcement"
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground" data-testid="text-announcements">
-                No announcements at this time.
-              </p>
+              {announcements.length === 0 ? (
+                <p className="text-sm text-muted-foreground" data-testid="text-no-announcements">
+                  No announcements yet.
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {announcements.map((announcement) => (
+                    <div
+                      key={announcement.id}
+                      className="p-3 rounded-md bg-muted/50 relative group"
+                      data-testid={`announcement-${announcement.id}`}
+                    >
+                      <p className="text-sm pr-6">{announcement.content}</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {new Date(announcement.createdAt).toLocaleDateString()}
+                      </p>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 text-destructive hover:text-destructive"
+                        onClick={() => deleteAnnouncementMutation.mutate(announcement.id)}
+                        data-testid={`button-delete-announcement-${announcement.id}`}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -317,7 +398,55 @@ export default function OrganizationDashboard({ organizationName, organizationDe
         </div>
       </div>
 
-      {/* Create/Edit Dialog */}
+      {/* Add Announcement Dialog */}
+      <Dialog open={isAnnouncementDialogOpen} onOpenChange={setIsAnnouncementDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Megaphone className="h-5 w-5" />
+              Add Announcement
+            </DialogTitle>
+            <DialogDescription>
+              Post an announcement for your organization.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Textarea
+              placeholder="Write your announcement here..."
+              value={announcementContent}
+              onChange={(e) => setAnnouncementContent(e.target.value)}
+              rows={4}
+              maxLength={500}
+              data-testid="input-announcement-content"
+            />
+            <p className="text-xs text-muted-foreground text-right">
+              {announcementContent.length}/500
+            </p>
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsAnnouncementDialogOpen(false);
+                  setAnnouncementContent("");
+                }}
+                data-testid="button-cancel-announcement"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handlePostAnnouncement}
+                disabled={createAnnouncementMutation.isPending || !announcementContent.trim()}
+                data-testid="button-post-announcement"
+              >
+                {createAnnouncementMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Post
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create/Edit Opportunity Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>

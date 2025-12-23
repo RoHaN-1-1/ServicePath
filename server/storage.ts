@@ -10,6 +10,7 @@ import {
   type Reflection,
   type InsertReflection,
   type ShareableLink,
+  type Announcement,
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { readFileSync } from "fs";
@@ -48,6 +49,14 @@ export interface IStorage {
   // Share methods
   createShareLink(userId: string, content: string): Promise<ShareableLink>;
   
+  // Announcement methods
+  getAnnouncements(organizationId: string): Promise<Announcement[]>;
+  createAnnouncement(organizationId: string, content: string): Promise<Announcement>;
+  deleteAnnouncement(organizationId: string, announcementId: string): Promise<boolean>;
+  
+  // Organization profile methods
+  updateOrganizationBio(userId: string, bio: string): Promise<User | undefined>;
+  
   // Session methods
   createSession(userId: string): string;
   getSession(sessionId: string): string | undefined;
@@ -63,6 +72,7 @@ export class MemStorage implements IStorage {
   private reflections: Map<string, Reflection[]>;
   private shareLinks: Map<string, ShareableLink>;
   private sessions: Map<string, string>; // sessionId -> userId
+  private announcements: Map<string, Announcement[]>; // organizationId -> announcements
 
   constructor() {
     this.users = new Map();
@@ -71,6 +81,7 @@ export class MemStorage implements IStorage {
     this.reflections = new Map();
     this.shareLinks = new Map();
     this.sessions = new Map();
+    this.announcements = new Map();
     
     // Load opportunities from CSV file
     this.opportunities = this.loadOpportunitiesFromCSV();
@@ -361,6 +372,47 @@ export class MemStorage implements IStorage {
     sessionsToDelete.forEach(sessionId => this.sessions.delete(sessionId));
   }
 
+  // Announcement methods
+  async getAnnouncements(organizationId: string): Promise<Announcement[]> {
+    return this.announcements.get(organizationId) || [];
+  }
+
+  async createAnnouncement(organizationId: string, content: string): Promise<Announcement> {
+    const announcement: Announcement = {
+      id: randomUUID(),
+      organizationId,
+      content,
+      createdAt: new Date().toISOString(),
+    };
+    const orgAnnouncements = this.announcements.get(organizationId) || [];
+    orgAnnouncements.unshift(announcement); // Add to beginning (newest first)
+    this.announcements.set(organizationId, orgAnnouncements);
+    return announcement;
+  }
+
+  async deleteAnnouncement(organizationId: string, announcementId: string): Promise<boolean> {
+    const orgAnnouncements = this.announcements.get(organizationId) || [];
+    const index = orgAnnouncements.findIndex(a => a.id === announcementId);
+    if (index === -1) return false;
+    
+    orgAnnouncements.splice(index, 1);
+    this.announcements.set(organizationId, orgAnnouncements);
+    return true;
+  }
+
+  // Organization profile methods
+  async updateOrganizationBio(userId: string, bio: string): Promise<User | undefined> {
+    const user = this.users.get(userId);
+    if (!user) return undefined;
+    
+    const updatedUser: User = {
+      ...user,
+      organizationDescription: bio,
+    };
+    this.users.set(userId, updatedUser);
+    return updatedUser;
+  }
+
   // Delete user and all associated data
   async deleteUser(userId: string): Promise<void> {
     // Delete user
@@ -381,6 +433,9 @@ export class MemStorage implements IStorage {
       .map(([linkId]) => linkId);
     
     linksToDelete.forEach(linkId => this.shareLinks.delete(linkId));
+    
+    // Delete announcements (for org accounts)
+    this.announcements.delete(userId);
     
     // Delete all sessions
     this.deleteAllUserSessions(userId);
