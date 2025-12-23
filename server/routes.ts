@@ -83,6 +83,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: "Invalid credentials" });
       }
       
+      // Validate that the selected account type matches the user's actual account type
+      const userAccountType = user.accountType || "student";
+      if (credentials.accountType && credentials.accountType !== userAccountType) {
+        const expectedType = credentials.accountType === "student" ? "student" : "organization";
+        return res.status(401).json({ 
+          error: `This is ${userAccountType === "organization" ? "an organization" : "a student"} account. Please select "${userAccountType}" to sign in.`
+        });
+      }
+      
       // Create session
       const sessionId = storage.createSession(user.id);
       
