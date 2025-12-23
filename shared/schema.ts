@@ -145,6 +145,7 @@ export interface OpportunityMatch {
 export const loginSchema = z.object({
   username: z.string().min(1, "Username required"),
   password: z.string().min(1, "Password required"),
+  accountType: z.enum(["student", "organization"]).default("student"),
 });
 
 export type LoginCredentials = z.infer<typeof loginSchema>;

@@ -37,8 +37,11 @@ export default function Login({ onLoginSuccess }: LoginProps) {
     defaultValues: {
       username: "",
       password: "",
+      accountType: "student",
     },
   });
+
+  const watchLoginAccountType = loginForm.watch("accountType");
 
   const registerForm = useForm<RegisterCredentials>({
     resolver: zodResolver(registerSchema),
@@ -143,6 +146,54 @@ export default function Login({ onLoginSuccess }: LoginProps) {
           {!isRegisterMode ? (
             <Form {...loginForm} key="login-form">
               <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
+                <FormField
+                  control={loginForm.control}
+                  name="accountType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>I am a</FormLabel>
+                      <FormControl>
+                        <RadioGroup
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                          className="grid grid-cols-2 gap-4"
+                        >
+                          <div>
+                            <RadioGroupItem
+                              value="student"
+                              id="login-student"
+                              className="peer sr-only"
+                            />
+                            <label
+                              htmlFor="login-student"
+                              className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover-elevate peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                              data-testid="radio-login-student"
+                            >
+                              <User className="mb-2 h-6 w-6" />
+                              <span className="text-sm font-medium">Student</span>
+                            </label>
+                          </div>
+                          <div>
+                            <RadioGroupItem
+                              value="organization"
+                              id="login-organization"
+                              className="peer sr-only"
+                            />
+                            <label
+                              htmlFor="login-organization"
+                              className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover-elevate peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                              data-testid="radio-login-organization"
+                            >
+                              <Building2 className="mb-2 h-6 w-6" />
+                              <span className="text-sm font-medium">Organization</span>
+                            </label>
+                          </div>
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 <FormField
                   control={loginForm.control}
                   name="username"
