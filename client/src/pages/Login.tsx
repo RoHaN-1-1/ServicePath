@@ -512,7 +512,8 @@ export default function Login({ onLoginSuccess }: LoginProps) {
             <div className="mt-6 p-4 bg-muted rounded-lg">
               <p className="text-sm text-muted-foreground text-center">
                 Demo credentials:<br />
-                <span className="font-mono font-semibold">student / password123</span>
+                <span className="font-mono font-semibold">student / password123</span><br />
+                <span className="font-mono font-semibold">organization / password123</span>
               </p>
             </div>
           )}
