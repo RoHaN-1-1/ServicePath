@@ -263,26 +263,25 @@ export function AccountInfoDialog({ open, onOpenChange, onAccountDeleted }: Acco
             <div className="space-y-3">
               <Label className="text-sm text-muted-foreground">Statistics</Label>
               
-              {userLoading || hoursLoading ? (
-                <div className="space-y-2">
-                  <Skeleton className="h-20 w-full" />
-                  <Skeleton className="h-20 w-full" />
-                </div>
+              {userLoading ? (
+                <Skeleton className="h-20 w-full" />
               ) : (
                 <div className="space-y-2">
-                  <Card>
-                    <CardContent className="flex items-center gap-3 p-4">
-                      <div className="p-2 rounded-lg bg-primary/10">
-                        <Clock className="h-5 w-5 text-primary" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Total Hours Logged</p>
-                        <p className="text-xl font-bold" data-testid="text-total-hours-dialog">
-                          {totalHours.toFixed(1)}
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  {userInfo?.accountType !== "organization" && (
+                    <Card>
+                      <CardContent className="flex items-center gap-3 p-4">
+                        <div className="p-2 rounded-lg bg-primary/10">
+                          <Clock className="h-5 w-5 text-primary" />
+                        </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground">Total Hours Logged</p>
+                          <p className="text-xl font-bold" data-testid="text-total-hours-dialog">
+                            {totalHours.toFixed(1)}
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
 
                   <Card>
                     <CardContent className="flex items-center gap-3 p-4">
