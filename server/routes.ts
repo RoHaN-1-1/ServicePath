@@ -16,6 +16,10 @@ import bcrypt from "bcryptjs";
 const HARDCODED_USERNAME = "student";
 const HARDCODED_PASSWORD = "password123";
 
+// Organization demo credentials
+const ORG_DEMO_USERNAME = "organization";
+const ORG_DEMO_PASSWORD = "password123";
+
 // Middleware to check authentication
 function requireAuth(req: Request, res: Response, next: Function) {
   const sessionId = req.cookies.sessionId;
@@ -44,13 +48,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get user by username
       let user = await storage.getUserByUsername(credentials.username);
       
-      // If hardcoded demo account and doesn't exist, create it with hashed password
+      // If hardcoded student demo account and doesn't exist, create it
       if (!user && credentials.username === HARDCODED_USERNAME) {
         const hashedPassword = await bcrypt.hash(HARDCODED_PASSWORD, 10);
         user = await storage.createUser({
           username: HARDCODED_USERNAME,
           password: hashedPassword,
-          accountType: "student", // Ensure demo account is a student
+          accountType: "student",
+        });
+      }
+      
+      // If hardcoded organization demo account and doesn't exist, create it
+      if (!user && credentials.username === ORG_DEMO_USERNAME) {
+        const hashedPassword = await bcrypt.hash(ORG_DEMO_PASSWORD, 10);
+        user = await storage.createUser({
+          username: ORG_DEMO_USERNAME,
+          password: hashedPassword,
+          accountType: "organization",
+          organizationName: "Demo Nonprofit",
+          contactEmail: "demo@nonprofit.org",
+          organizationDescription: "A demo organization account for testing volunteer opportunity management.",
         });
       }
       
