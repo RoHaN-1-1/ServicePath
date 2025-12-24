@@ -125,37 +125,42 @@ export default function Dashboard() {
                   <div className="space-y-6">
                     <h2 className="text-2xl font-semibold">Browse by Category</h2>
                     {[
-                      { name: "Environment & Nature", icon: "🌿", categories: ["environment"] },
-                      { name: "Education & Training", icon: "📚", categories: ["tutoring", "youth"] },
-                      { name: "Animal Welfare", icon: "🐾", categories: ["animals"] },
-                      { name: "Arts & Culture", icon: "🎨", categories: ["arts"] },
-                      { name: "Technology & STEM", icon: "💻", categories: ["technology"] },
-                      { name: "Community Service", icon: "🤝", categories: ["community"] },
-                      { name: "Senior Care", icon: "👴", categories: ["seniors"] },
-                      { name: "Youth Mentoring", icon: "👦", categories: ["youth"] },
-                    ].map(({ name, icon, categories }) => {
+                      { name: "Environment & Nature", slug: "environment", categories: ["environment"] },
+                      { name: "Education & Training", slug: "education", categories: ["tutoring", "youth"] },
+                      { name: "Animal Welfare", slug: "animals", categories: ["animals"] },
+                      { name: "Arts & Culture", slug: "arts", categories: ["arts"] },
+                      { name: "Technology & STEM", slug: "technology", categories: ["technology"] },
+                      { name: "Community Service", slug: "community", categories: ["community"] },
+                      { name: "Senior Care", slug: "seniors", categories: ["seniors"] },
+                      { name: "Youth Mentoring", slug: "youth", categories: ["youth"] },
+                    ].map(({ name, slug, categories }) => {
                       const categoryOpps = allOpportunities.filter(opp =>
                         opp.category.some(cat => categories.includes(cat))
                       );
                       if (categoryOpps.length === 0) return null;
                       
                       return (
-                        <Card key={name}>
+                        <Card 
+                          key={name} 
+                          className="cursor-pointer hover-elevate"
+                          onClick={() => setLocation(`/search?category=${slug}`)}
+                          data-testid={`card-category-${slug}`}
+                        >
                           <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                              <span className="text-2xl">{icon}</span>
-                              {name}
+                            <CardTitle className="flex items-center justify-between gap-2">
+                              <span>{name}</span>
+                              <Badge variant="secondary">{categoryOpps.length}</Badge>
                             </CardTitle>
-                            <CardDescription>{categoryOpps.length} opportunities available</CardDescription>
+                            <CardDescription>Click to see all {categoryOpps.length} opportunities</CardDescription>
                           </CardHeader>
                           <CardContent>
                             <div className="grid gap-4">
                               {categoryOpps.slice(0, 3).map(opp => (
-                                <div key={opp.id} className="p-4 border rounded-lg hover-elevate" data-testid={`card-opportunity-${opp.id}`}>
+                                <div key={opp.id} className="p-4 border rounded-lg" data-testid={`card-opportunity-${opp.id}`}>
                                   <div className="flex items-start justify-between gap-4">
                                     <div className="flex-1">
                                       <h4 className="font-semibold mb-1">{opp.title}</h4>
-                                      <p className="text-sm text-muted-foreground mb-2">{opp.description}</p>
+                                      <p className="text-sm text-muted-foreground mb-2 line-clamp-2">{opp.description}</p>
                                       <div className="flex flex-wrap gap-2">
                                         <Badge variant="secondary" className="text-xs">
                                           <Building2 className="h-3 w-3 mr-1" />
@@ -174,6 +179,11 @@ export default function Dashboard() {
                                   </div>
                                 </div>
                               ))}
+                              {categoryOpps.length > 3 && (
+                                <p className="text-sm text-primary font-medium text-center">
+                                  + {categoryOpps.length - 3} more opportunities
+                                </p>
+                              )}
                             </div>
                           </CardContent>
                         </Card>

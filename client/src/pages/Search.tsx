@@ -17,18 +17,48 @@ import {
 } from "@/components/ui/table";
 import type { VolunteerOpportunity } from "@shared/schema";
 
+const CATEGORY_MAP: Record<string, { name: string; categories: string[] }> = {
+  environment: { name: "Environment & Nature", categories: ["environment"] },
+  education: { name: "Education & Training", categories: ["tutoring", "youth"] },
+  animals: { name: "Animal Welfare", categories: ["animals"] },
+  arts: { name: "Arts & Culture", categories: ["arts"] },
+  technology: { name: "Technology & STEM", categories: ["technology"] },
+  community: { name: "Community Service", categories: ["community"] },
+  seniors: { name: "Senior Care", categories: ["seniors"] },
+  youth: { name: "Youth Mentoring", categories: ["youth"] },
+};
+
 export default function Search() {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const searchParams = new URLSearchParams(location.split("?")[1] || "");
   const initialQuery = searchParams.get("q") || "";
+  const categorySlug = searchParams.get("category") || "";
   
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [activeQuery, setActiveQuery] = useState(initialQuery);
 
-  const { data: opportunities, isLoading } = useQuery<VolunteerOpportunity[]>({
+  // For text search
+  const { data: searchResults, isLoading: searchLoading } = useQuery<VolunteerOpportunity[]>({
     queryKey: ["/api/search", activeQuery],
-    enabled: activeQuery.length > 0,
+    enabled: activeQuery.length > 0 && !categorySlug,
   });
+
+  // For category browsing - fetch all opportunities
+  const { data: allOpportunities, isLoading: allLoading } = useQuery<VolunteerOpportunity[]>({
+    queryKey: ["/api/opportunities"],
+    enabled: !!categorySlug,
+  });
+
+  // Filter by category if browsing by category
+  const categoryInfo = categorySlug ? CATEGORY_MAP[categorySlug] : null;
+  const categoryOpportunities = categorySlug && allOpportunities
+    ? allOpportunities.filter(opp => 
+        opp.category.some(cat => categoryInfo?.categories.includes(cat))
+      )
+    : [];
+
+  const opportunities = categorySlug ? categoryOpportunities : searchResults;
+  const isLoading = categorySlug ? allLoading : searchLoading;
 
   useEffect(() => {
     setSearchQuery(initialQuery);
@@ -49,10 +79,25 @@ export default function Search() {
     <div className="min-h-screen bg-background p-6 lg:p-8">
       <div className="max-w-6xl mx-auto space-y-6">
         <div>
-          <h1 className="text-3xl font-bold">Search Opportunities</h1>
+          <h1 className="text-3xl font-bold" data-testid="text-page-title">
+            {categoryInfo ? categoryInfo.name : "Search Opportunities"}
+          </h1>
           <p className="text-muted-foreground mt-1">
-            Find volunteer opportunities that match your interests
+            {categoryInfo 
+              ? `${categoryOpportunities.length} opportunities in this category`
+              : "Find volunteer opportunities that match your interests"}
           </p>
+          {categoryInfo && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="mt-3"
+              onClick={() => setLocation("/")}
+              data-testid="button-back-to-browse"
+            >
+              Back to Browse
+            </Button>
+          )}
         </div>
 
         {/* Search Bar */}
@@ -83,7 +128,7 @@ export default function Search() {
               <Skeleton key={i} className="h-32 w-full" />
             ))}
           </div>
-        ) : activeQuery && opportunities ? (
+        ) : (activeQuery || categorySlug) && opportunities ? (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <p className="text-muted-foreground">
