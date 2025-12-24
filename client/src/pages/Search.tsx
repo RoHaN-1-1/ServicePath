@@ -30,9 +30,17 @@ const CATEGORY_MAP: Record<string, { name: string; categories: string[] }> = {
 
 export default function Search() {
   const [location, setLocation] = useLocation();
-  const searchParams = new URLSearchParams(location.split("?")[1] || "");
+  
+  // Read query params directly from window.location on each render
+  const searchParams = new URLSearchParams(window.location.search);
   const initialQuery = searchParams.get("q") || "";
   const categorySlug = searchParams.get("category") || "";
+  
+  // Force re-render when location changes (even just pathname triggers this)
+  const [, forceUpdate] = useState(0);
+  useEffect(() => {
+    forceUpdate(n => n + 1);
+  }, [location]);
   
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [activeQuery, setActiveQuery] = useState(initialQuery);
