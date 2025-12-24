@@ -69,6 +69,8 @@ export interface VolunteerOpportunity {
   tags: string[]; // e.g., ["college_application", "leadership"]
   organizationId?: string; // ID of organization that created this opportunity
   createdAt?: string;
+  eventDate?: string; // e.g., "2025-01-15"
+  eventTime?: string; // e.g., "10:00 AM"
 }
 
 export const insertOpportunitySchema = z.object({
@@ -81,6 +83,8 @@ export const insertOpportunitySchema = z.object({
   timeCommitment: z.string().min(1, "Time commitment required"),
   remote: z.boolean().default(false),
   tags: z.array(z.string()).default([]),
+  eventDate: z.string().optional(),
+  eventTime: z.string().optional(),
 });
 
 export type InsertOpportunity = z.infer<typeof insertOpportunitySchema>;

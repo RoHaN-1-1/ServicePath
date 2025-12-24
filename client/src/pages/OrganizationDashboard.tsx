@@ -92,6 +92,8 @@ export default function OrganizationDashboard({ organizationName }: Organization
       timeCommitment: "",
       remote: false,
       tags: [],
+      eventDate: "",
+      eventTime: "",
     },
   });
 
@@ -187,6 +189,8 @@ export default function OrganizationDashboard({ organizationName }: Organization
       timeCommitment: "",
       remote: false,
       tags: [],
+      eventDate: "",
+      eventTime: "",
     });
     setIsDialogOpen(true);
   };
@@ -203,6 +207,8 @@ export default function OrganizationDashboard({ organizationName }: Organization
       timeCommitment: opportunity.timeCommitment,
       remote: opportunity.remote,
       tags: opportunity.tags,
+      eventDate: opportunity.eventDate || "",
+      eventTime: opportunity.eventTime || "",
     });
     setIsDialogOpen(true);
   };
@@ -276,6 +282,13 @@ export default function OrganizationDashboard({ organizationName }: Organization
                             {opportunity.title}
                           </h3>
                           <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                            {opportunity.eventDate && (
+                              <span className="flex items-center gap-1" data-testid={`text-event-date-${opportunity.id}`}>
+                                <Calendar className="h-4 w-4" />
+                                {new Date(opportunity.eventDate).toLocaleDateString()}
+                                {opportunity.eventTime && ` at ${opportunity.eventTime}`}
+                              </span>
+                            )}
                             <span className="flex items-center gap-1" data-testid={`text-event-time-${opportunity.id}`}>
                               <Clock className="h-4 w-4" />
                               {opportunity.timeCommitment}
@@ -518,6 +531,44 @@ export default function OrganizationDashboard({ organizationName }: Organization
                           {...field}
                           placeholder="e.g., 3 hours/week"
                           data-testid="input-opportunity-time"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="eventDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Event Date</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          type="date"
+                          data-testid="input-opportunity-date"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="eventTime"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Event Time</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          type="time"
+                          data-testid="input-opportunity-event-time"
                         />
                       </FormControl>
                       <FormMessage />
