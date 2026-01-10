@@ -44,7 +44,6 @@ export default function Tracker() {
       activityTitle: "",
       date: format(new Date(), "yyyy-MM-dd"),
       hours: 1,
-      verified: false,
       signature: "",
     },
   });
@@ -92,7 +91,6 @@ export default function Tracker() {
   };
 
   const totalHours = hours?.reduce((sum, entry) => sum + entry.hours, 0) || 0;
-  const verifiedHours = hours?.filter(h => h.verified).reduce((sum, entry) => sum + entry.hours, 0) || 0;
 
   return (
     <div className="min-h-screen bg-background p-6 lg:p-8">
@@ -114,22 +112,13 @@ export default function Tracker() {
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Card>
             <CardContent className="pt-6">
               <div className="text-center">
                 <Clock className="h-8 w-8 text-primary mx-auto mb-2" />
                 <p className="text-3xl font-bold" data-testid="text-total-hours">{totalHours}</p>
                 <p className="text-sm text-muted-foreground">Total Hours</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="text-center">
-                <CheckCircle2 className="h-8 w-8 text-green-500 mx-auto mb-2" />
-                <p className="text-3xl font-bold" data-testid="text-verified-hours">{verifiedHours}</p>
-                <p className="text-sm text-muted-foreground">Verified Hours</p>
               </div>
             </CardContent>
           </Card>
@@ -276,7 +265,6 @@ export default function Tracker() {
                       <TableHead>Activity</TableHead>
                       <TableHead>Hours</TableHead>
                       <TableHead>Signature</TableHead>
-                      <TableHead>Status</TableHead>
                       <TableHead className="w-16"></TableHead>
                     </TableRow>
                   </TableHeader>
@@ -304,19 +292,6 @@ export default function Tracker() {
                             <span className="text-muted-foreground text-sm" data-testid={`text-no-signature-${entry.id}`}>
                               No signature
                             </span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {entry.verified ? (
-                            <Badge className="bg-green-500 text-white">
-                              <CheckCircle2 className="mr-1 h-3 w-3" />
-                              Verified
-                            </Badge>
-                          ) : (
-                            <Badge variant="outline">
-                              <XCircle className="mr-1 h-3 w-3" />
-                              Pending
-                            </Badge>
                           )}
                         </TableCell>
                         <TableCell>

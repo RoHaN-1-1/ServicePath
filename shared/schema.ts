@@ -96,7 +96,6 @@ export interface VolunteerHour {
   activityTitle: string;
   date: string;
   hours: number;
-  verified: boolean;
   opportunityId?: string;
   signature?: string; // Base64 data URL of signature image
 }
@@ -105,7 +104,6 @@ export const insertVolunteerHourSchema = z.object({
   activityTitle: z.string().min(1, "Activity title required"),
   date: z.string().min(1, "Date required"),
   hours: z.number().min(0.5, "Minimum 0.5 hours").max(24, "Maximum 24 hours"),
-  verified: z.boolean().default(false),
   opportunityId: z.string().optional(),
   signature: z.string().optional(),
 });

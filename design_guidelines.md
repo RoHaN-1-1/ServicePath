@@ -165,7 +165,7 @@
 
 **Hour Tracker:**
 - Table or card-based entries
-- Columns: Date, Activity, Hours, Verified status
+- Columns: Date, Activity, Hours, Signature
 - Add new entry button prominent
 - Running total displayed in header
 

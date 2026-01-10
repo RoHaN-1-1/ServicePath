@@ -423,9 +423,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const reflections = await storage.getReflections(userId);
       
       const totalHours = hours.reduce((sum, h) => sum + h.hours, 0);
-      const verifiedHours = hours.filter(h => h.verified).reduce((sum, h) => sum + h.hours, 0);
       
-      const summary = `Volunteer Service Summary: ${totalHours} total hours (${verifiedHours} verified), ${hours.length} activities, ${reflections.length} reflections`;
+      const summary = `Volunteer Service Summary: ${totalHours} total hours, ${hours.length} activities, ${reflections.length} reflections`;
       
       const shareLink = await storage.createShareLink(userId, summary);
       

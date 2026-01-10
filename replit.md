@@ -9,7 +9,7 @@ ServicePath is a web application designed to help high school students discover 
 **Core Features:**
 - Interest-based opportunity matching through personality quiz
 - Browse opportunities by category (Environment & Nature, Education & Training, Animal Welfare, Arts & Culture, Technology & STEM, Community Service, Senior Care, Youth Mentoring)
-- Volunteer hour tracking with verification status and digital signatures
+- Volunteer hour tracking with digital signatures
 - Reflection journaling
 - Shareable service summaries
 - Search and filter capabilities
@@ -193,7 +193,7 @@ The application uses in-memory storage as a lightweight solution for the initial
 - Skill and category arrays for matching
 
 **Tracking & Reflection:**
-- Volunteer hours include date, duration, activity title, and verification status
+- Volunteer hours include date, duration, activity title, and optional signature
 - Reflections contain title and content for journaling
 
 **Design Rationale:** Flat, denormalized structures work well with in-memory storage and simplify AI prompt construction. Arrays enable flexible many-to-many relationships without complex joins.

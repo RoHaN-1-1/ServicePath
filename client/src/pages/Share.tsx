@@ -10,7 +10,6 @@ import type { VolunteerHour, Reflection } from "@shared/schema";
 
 interface ServiceSummary {
   totalHours: number;
-  verifiedHours: number;
   activitiesCount: number;
   reflectionsCount: number;
   topActivities: string[];
@@ -49,7 +48,6 @@ export default function Share() {
 
   const summary: ServiceSummary = {
     totalHours: hours?.reduce((sum, h) => sum + h.hours, 0) || 0,
-    verifiedHours: hours?.filter(h => h.verified).reduce((sum, h) => sum + h.hours, 0) || 0,
     activitiesCount: hours?.length || 0,
     reflectionsCount: reflections?.length || 0,
     topActivities: hours?.slice(0, 5).map(h => h.activityTitle) || [],
@@ -70,7 +68,6 @@ export default function Share() {
 VOLUNTEER SERVICE SUMMARY
 
 Total Hours: ${summary.totalHours}
-Verified Hours: ${summary.verifiedHours}
 Activities: ${summary.activitiesCount}
 Reflections: ${summary.reflectionsCount}
 
@@ -125,20 +122,13 @@ Generated on ${new Date().toLocaleDateString()}
               </div>
             ) : (
               <div className="space-y-6">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-3 gap-4">
                   <div className="text-center p-4 rounded-lg bg-primary/5">
                     <Clock className="h-6 w-6 text-primary mx-auto mb-2" />
                     <p className="text-3xl font-bold" data-testid="text-share-total-hours">
                       {summary.totalHours}
                     </p>
                     <p className="text-sm text-muted-foreground">Total Hours</p>
-                  </div>
-                  <div className="text-center p-4 rounded-lg bg-green-500/5">
-                    <CheckCircle2 className="h-6 w-6 text-green-500 mx-auto mb-2" />
-                    <p className="text-3xl font-bold" data-testid="text-share-verified-hours">
-                      {summary.verifiedHours}
-                    </p>
-                    <p className="text-sm text-muted-foreground">Verified</p>
                   </div>
                   <div className="text-center p-4 rounded-lg bg-blue-500/5">
                     <svg className="h-6 w-6 text-blue-500 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
