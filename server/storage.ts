@@ -13,8 +13,6 @@ import {
   type Announcement,
 } from "@shared/schema";
 import { randomUUID } from "crypto";
-import { readFileSync } from "fs";
-import { join } from "path";
 
 export interface IStorage {
   // User methods
@@ -83,97 +81,8 @@ export class MemStorage implements IStorage {
     this.sessions = new Map();
     this.announcements = new Map();
     
-    // Load opportunities from CSV file
-    this.opportunities = this.loadOpportunitiesFromCSV();
-  }
-
-  private loadOpportunitiesFromCSV(): VolunteerOpportunity[] {
-    try {
-      const csvPath = join(process.cwd(), "volunteer_opportunities.csv");
-      const csvContent = readFileSync(csvPath, "utf-8");
-      const lines = csvContent.trim().split("\n").slice(1); // Skip header
-      
-      const opportunities: VolunteerOpportunity[] = [];
-      
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i].trim();
-        if (!line) continue;
-        
-        // Simple CSV parser (handles quoted fields)
-        const parts: string[] = [];
-        let current = '';
-        let inQuotes = false;
-        
-        for (let j = 0; j < line.length; j++) {
-          const char = line[j];
-          if (char === '"') {
-            inQuotes = !inQuotes;
-          } else if (char === ',' && !inQuotes) {
-            parts.push(current.trim());
-            current = '';
-          } else {
-            current += char;
-          }
-        }
-        parts.push(current.trim());
-        
-        if (parts.length < 8) continue;
-        
-        const [name, host, description, hours, age, requirements, field, days] = parts;
-        
-        // Map field to categories
-        const fieldMap: Record<string, string[]> = {
-          "Environment & Nature": ["environment"],
-          "Education & Training": ["tutoring", "youth"],
-          "Animal Welfare": ["animals"],
-          "Arts & Culture": ["arts"],
-          "Technology & STEM": ["technology"],
-          "Community Service": ["community"],
-          "Senior Care": ["seniors"],
-          "Youth Mentoring": ["youth"],
-        };
-        
-        const category = fieldMap[field] || ["community"];
-        
-        // Determine if remote
-        const remote = requirements.toLowerCase().includes("remote") || 
-                      requirements.toLowerCase().includes("virtual") ||
-                      requirements.toLowerCase().includes("online");
-        
-        opportunities.push({
-          id: String(i + 1),
-          title: name,
-          location: remote ? "Remote" : requirements.includes("onsite") ? "Hybrid" : "In-person",
-          hostedBy: host,
-          requirements,
-          description,
-          category,
-          skills: [],
-          timeCommitment: `${hours} hours`,
-          remote,
-          tags: ["service_hours"],
-        });
-      }
-      
-      console.log(`Loaded ${opportunities.length} opportunities from CSV`);
-      return opportunities;
-    } catch (error) {
-      console.error("Error loading CSV:", error);
-      // Fallback to minimal opportunities if CSV fails
-      return [{
-        id: "1",
-        title: "Park Cleanup",
-        location: "Riverside Park",
-        hostedBy: "GreenEarth Org",
-        requirements: "Ages 14+, Saturday morning, in-person",
-        description: "Join us to clean up the local park and learn about ecosystem restoration.",
-        category: ["environment", "community"],
-        skills: ["physical"],
-        timeCommitment: "Saturday morning, 3 hours",
-        remote: false,
-        tags: ["service_hours"],
-      }];
-    }
+    // Start with empty opportunities - organizations create their own
+    this.opportunities = [];
   }
 
   // User methods

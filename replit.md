@@ -15,7 +15,7 @@ ServicePath is a web application designed to help high school students discover 
 - Search and filter capabilities
 
 **Data Source:**
-- 20 volunteer opportunities loaded from `volunteer_opportunities.csv`
+- Volunteer opportunities are created by organizations through their dashboard
 - Opportunities organized by 8 main categories mapped to user interest fields
 
 **Recent Updates (December 22, 2025):**
