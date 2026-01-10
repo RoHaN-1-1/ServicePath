@@ -1,220 +1,97 @@
-@startuml VolunteerMatch Architecture
-
-title VolunteerMatch Platform - System Architecture
-
-skinparam packageStyle rectangle
-skinparam componentStyle uml2
-
-package "Frontend (React + Vite)" {
-  [App.tsx] as App
-  [Dashboard] as StudentDash
-  [OrganizationDashboard] as OrgDash
-  [Quiz] as Quiz
-  [Search] as Search
-  [HourLog] as HourLog
-  [Reflections] as Reflections
-  [AccountInfoDialog] as AccountInfo
+@startuml ServicePath - Simple Architecture
+!theme plain
+skinparam backgroundColor #FAFAFA
+skinparam defaultFontSize 14
+title ServicePath Platform - How It Works
+package "What You See & Use" as Frontend #E3F2FD {
+  
+  rectangle "Account & Login" as Auth {
+    [Create Account] as Register
+    [Sign In] as Login
+    [Account Info & Settings] as AccountInfo
+  }
+  
+  rectangle "Finding Opportunities" as Discovery {
+    [Personality Quiz] as Quiz
+    [Browse Opportunities] as Browse
+    [Search & Filter] as Search
+  }
+  
+  rectangle "Tracking Your Service" as Tracking {
+    [Log Volunteer Hours] as LogHours
+    [Write Reflections] as Reflections
+    [View Your Stats] as Stats
+  }
+  
+  rectangle "Sharing Your Impact" as Sharing {
+    [Generate Summary] as Summary
+    [Share Link] as ShareLink
+  }
 }
-
-package "Backend (Express.js)" {
-  [routes.ts] as Routes
-  [storage.ts] as Storage
-  [openai.ts] as OpenAI
+package "Behind the Scenes" as Backend #FFF9C4 {
+  
+  rectangle "Security & Authentication" as Security {
+    [Password Protection] as Passwords
+    [Session Management] as Sessions
+  }
+  
+  rectangle "Data Management" as DataMgmt {
+    [Your Profile] as Profile
+    [Your Hours & Activities] as Hours
+    [Your Reflections] as UserReflections
+    [Shareable Links] as Links
+  }
+  
+  rectangle "Smart Matching" as Matching {
+    [Quiz Results Analysis] as QuizAnalysis
+    [Opportunity Filtering] as Filter
+  }
 }
-
-package "External Services" {
-  [OpenAI GPT-5] as GPT
+database "Opportunity Database" as OppDB #FFCCBC {
+  file "20 Volunteer\nOpportunities\n(8 Categories)" as CSV
 }
-
-database "In-Memory Storage" {
-  [Users]
-  [Profiles]
-  [Opportunities]
-  [VolunteerHours]
-  [Reflections] as ReflectionsDB
-  [Announcements]
-  [Sessions]
-}
-
-App --> StudentDash
-App --> OrgDash
-App --> Quiz
-App --> Search
-App --> HourLog
-App --> Reflections
-
-StudentDash --> Routes : API Calls
-OrgDash --> Routes : API Calls
-Quiz --> Routes : API Calls
-Search --> Routes : API Calls
-HourLog --> Routes : API Calls
-Reflections --> Routes : API Calls
-AccountInfo --> Routes : API Calls
-
-Routes --> Storage : CRUD Operations
-Routes --> OpenAI : AI Matching
-OpenAI --> GPT : Generate Recommendations
-
-Storage --> Users
-Storage --> Profiles
-Storage --> Opportunities
-Storage --> VolunteerHours
-Storage --> ReflectionsDB
-Storage --> Announcements
-Storage --> Sessions
-
-@enduml
-
-@startuml User Flows
-
-title VolunteerMatch - User Flows
-
-actor Student
-actor Organization
-
-== Student Registration & Onboarding ==
-Student -> App : Register (username, password)
-App -> Backend : POST /api/register
-Backend -> Storage : Create user (bcrypt hash)
-Backend -> App : Auto-login (set session cookie)
-App -> Student : Redirect to Dashboard
-
-Student -> Dashboard : Take Quiz
-Dashboard -> Quiz : Navigate
-Student -> Quiz : Answer questions
-Quiz -> Backend : POST /api/profile
-Backend -> Storage : Save profile
-Quiz -> Student : Show matched opportunities
-
-== Organization Posting ==
-Organization -> App : Login
-App -> OrgDashboard : Show dashboard
-Organization -> OrgDashboard : Create Opportunity
-OrgDashboard -> Backend : POST /api/organization/opportunities
-Backend -> Storage : Save opportunity
-OrgDashboard -> Organization : Show in list
-
-Organization -> OrgDashboard : Post Announcement
-OrgDashboard -> Backend : POST /api/organization/announcements
-Backend -> Storage : Save announcement
-
-== Student Browsing ==
-Student -> Dashboard : Click category card
-Dashboard -> Search : Navigate with filter
-Search -> Backend : GET /api/opportunities
-Backend -> Student : Show filtered results
-
-== Hour Tracking ==
-Student -> HourLog : Log hours
-Student -> HourLog : Add digital signature
-HourLog -> Backend : POST /api/hours
-Backend -> Storage : Save with signature data
-
-== Account Management ==
-Student -> AccountInfo : View stats
-Student -> AccountInfo : Delete account
-AccountInfo -> Backend : POST /api/account/delete (with password)
-Backend -> Storage : Remove all user data
-
-@enduml
-
-@startuml Data Model
-
-title VolunteerMatch - Data Model
-
-class User {
-  +id: string
-  +username: string
-  +password: string (bcrypt)
-  +accountType: "student" | "organization"
-  +organizationName?: string
-  +organizationEmail?: string
-  +organizationDescription?: string
-  +organizationBio?: string
-  +createdAt: Date
-}
-
-class UserProfile {
-  +id: string
-  +userId: string
-  +interests: string[]
-  +skills: string[]
-  +availability: string[]
-  +goals: string[]
-  +location?: string
-  +serviceHoursGoal?: number
-}
-
-class VolunteerOpportunity {
-  +id: string
-  +title: string
-  +description: string
-  +location: string
-  +requirements: string
-  +category: string[]
-  +skills: string[]
-  +timeCommitment: string
-  +remote: boolean
-  +tags: string[]
-  +eventDate?: string
-  +eventTime?: string
-  +organizationId?: string
-}
-
-class VolunteerHours {
-  +id: string
-  +date: string
-  +hours: number
-  +activity: string
-  +verified: boolean
-  +signature?: string (base64)
-}
-
-class Reflection {
-  +id: string
-  +title: string
-  +content: string
-  +createdAt: Date
-}
-
-class Announcement {
-  +id: string
-  +organizationId: string
-  +content: string
-  +createdAt: Date
-}
-
-User "1" -- "0..1" UserProfile
-User "1" -- "*" VolunteerHours
-User "1" -- "*" Reflection
-User "1" -- "*" Announcement : posts
-User "1" -- "*" VolunteerOpportunity : creates
-
-@enduml
-
-@startuml AI Matching Flow
-
-title AI-Powered Opportunity Matching
-
-participant Student
-participant Frontend
-participant Backend
-participant OpenAI as "OpenAI GPT-5"
-
-Student -> Frontend : Complete quiz
-Frontend -> Backend : POST /api/profile
-Backend -> Backend : Save profile
-
-Student -> Frontend : View recommendations
-Frontend -> Backend : GET /api/recommendations
-Backend -> Backend : Fetch user profile
-Backend -> Backend : Fetch all opportunities
-
-Backend -> OpenAI : Send prompt with:\n- User interests\n- User skills\n- User availability\n- User goals\n- User location\n- All opportunities
-
-OpenAI -> Backend : Return JSON:\n- Scores (0-100)\n- Match reasons
-
-Backend -> Frontend : Sorted opportunities\nwith match scores
-Frontend -> Student : Display personalized\nrecommendations
-
+cloud "Optional AI\nRecommendations" as AI #E1BEE7
+' User interactions
+Register --> Passwords : "creates account with\nencrypted password"
+Login --> Sessions : "logs you in securely"
+AccountInfo --> Profile : "shows your stats\n& allows deletion"
+Quiz --> QuizAnalysis : "analyzes your\ninterests & goals"
+Browse --> Filter : "shows matching\nopportunities"
+Search --> Filter : "finds specific\nopportunities"
+LogHours --> Hours : "saves your\nvolunteer time"
+Reflections --> UserReflections : "stores your thoughts"
+Stats --> Hours : "calculates total hours\n& account age"
+Summary --> Links : "creates shareable\nsummary"
+ShareLink --> Links : "generates public link"
+' Backend connections
+QuizAnalysis --> Filter : "determines\nwhat to show you"
+Filter --> OppDB : "pulls relevant\nopportunities"
+Passwords --> Profile : "protects your data"
+Sessions --> Profile : "keeps you logged in"
+' External data
+CSV --> OppDB : "provides volunteer\nopportunity list"
+AI -.> Filter : "can suggest matches\n(currently disabled\nfor speed)"
+note right of Frontend
+  <b>Your Experience</b>
+  Everything you click,
+  view, and interact with
+end note
+note right of Backend
+  <b>System Processing</b>
+  Handles your data securely,
+  filters opportunities,
+  calculates statistics
+end note
+note bottom of OppDB
+  Pre-loaded opportunities
+  across 8 categories:
+  • Environment & Nature
+  • Education & Training
+  • Animal Welfare
+  • Arts & Culture
+  • Technology & STEM
+  • Community Service
+  • Senior Care
+  • Youth Mentoring
+end note
 @enduml

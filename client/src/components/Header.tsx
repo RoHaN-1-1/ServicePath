@@ -32,9 +32,9 @@ export function Header({ username, onLogout }: HeaderProps) {
         data-testid="button-logo-home"
       >
         <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-primary-foreground font-semibold">
-          V
+          S
         </div>
-        <h1 className="text-xl font-bold">VolunteerMatch</h1>
+        <h1 className="text-xl font-bold">ServicePath</h1>
       </button>
 
       <div className="flex items-center gap-3">

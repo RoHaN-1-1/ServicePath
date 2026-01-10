@@ -130,10 +130,10 @@ export default function Login({ onLoginSuccess }: LoginProps) {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 text-center">
           <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 rounded-full bg-primary text-primary-foreground text-2xl font-bold">
-            V
+            S
           </div>
           <CardTitle className="text-2xl font-bold">
-            {isRegisterMode ? "Create an Account" : "Welcome to VolunteerMatch"}
+            {isRegisterMode ? "Create an Account" : "Welcome to ServicePath"}
           </CardTitle>
           <CardDescription>
             {isRegisterMode 

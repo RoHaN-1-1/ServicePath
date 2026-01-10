@@ -1,8 +1,8 @@
-# VolunteerMatch Platform
+# ServicePath Platform
 
 ## Overview
 
-VolunteerMatch is a web application designed to help high school students discover and engage with volunteer opportunities. The platform matches students with opportunities based on their interests, skills, availability, and goals selected through an onboarding quiz. Students can track their volunteer hours, write reflections, and share their service summaries.
+ServicePath is a web application designed to help high school students discover and engage with volunteer opportunities. The platform matches students with opportunities based on their interests, skills, availability, and goals selected through an onboarding quiz. Students can track their volunteer hours, write reflections, and share their service summaries.
 
 **Target Users:** High school students seeking meaningful volunteer experiences for personal growth, college applications, and community service requirements.
 
