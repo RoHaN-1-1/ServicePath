@@ -124,71 +124,40 @@ export default function Dashboard() {
                   {/* Opportunities by category */}
                   <div className="space-y-6">
                     <h2 className="text-2xl font-semibold">Browse by Category</h2>
-                    {[
-                      { name: "Environment & Nature", slug: "environment", categories: ["environment"] },
-                      { name: "Education & Training", slug: "education", categories: ["tutoring", "youth"] },
-                      { name: "Animal Welfare", slug: "animals", categories: ["animals"] },
-                      { name: "Arts & Culture", slug: "arts", categories: ["arts"] },
-                      { name: "Technology & STEM", slug: "technology", categories: ["technology"] },
-                      { name: "Community Service", slug: "community", categories: ["community"] },
-                      { name: "Senior Care", slug: "seniors", categories: ["seniors"] },
-                      { name: "Youth Mentoring", slug: "youth", categories: ["youth"] },
-                    ].map(({ name, slug, categories }) => {
-                      const categoryOpps = allOpportunities.filter(opp =>
-                        opp.category.some(cat => categories.includes(cat))
-                      );
-                      if (categoryOpps.length === 0) return null;
-                      
-                      return (
-                        <Card 
-                          key={name} 
-                          className="cursor-pointer hover-elevate"
-                          onClick={() => setLocation(`/search?category=${slug}`)}
-                          data-testid={`card-category-${slug}`}
-                        >
-                          <CardHeader>
-                            <CardTitle className="flex items-center justify-between gap-2">
-                              <span>{name}</span>
-                              <Badge variant="secondary">{categoryOpps.length}</Badge>
-                            </CardTitle>
-                            <CardDescription>Click to see all {categoryOpps.length} opportunities</CardDescription>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="grid gap-4">
-                              {categoryOpps.slice(0, 3).map(opp => (
-                                <div key={opp.id} className="p-4 border rounded-lg" data-testid={`card-opportunity-${opp.id}`}>
-                                  <div className="flex items-start justify-between gap-4">
-                                    <div className="flex-1">
-                                      <h4 className="font-semibold mb-1">{opp.title}</h4>
-                                      <p className="text-sm text-muted-foreground mb-2 line-clamp-2">{opp.description}</p>
-                                      <div className="flex flex-wrap gap-2">
-                                        <Badge variant="secondary" className="text-xs">
-                                          <Building2 className="h-3 w-3 mr-1" />
-                                          {opp.hostedBy}
-                                        </Badge>
-                                        <Badge variant="secondary" className="text-xs">
-                                          <MapPin className="h-3 w-3 mr-1" />
-                                          {opp.location}
-                                        </Badge>
-                                        <Badge variant="secondary" className="text-xs">
-                                          <Clock className="h-3 w-3 mr-1" />
-                                          {opp.timeCommitment}
-                                        </Badge>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              ))}
-                              {categoryOpps.length > 3 && (
-                                <p className="text-sm text-primary font-medium text-center">
-                                  + {categoryOpps.length - 3} more opportunities
-                                </p>
-                              )}
-                            </div>
-                          </CardContent>
-                        </Card>
-                      );
-                    })}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {[
+                        { name: "Environment & Nature", slug: "environment", categories: ["environment"], icon: "🌿" },
+                        { name: "Education & Training", slug: "education", categories: ["tutoring", "youth"], icon: "📚" },
+                        { name: "Animal Welfare", slug: "animals", categories: ["animals"], icon: "🐾" },
+                        { name: "Arts & Culture", slug: "arts", categories: ["arts"], icon: "🎨" },
+                        { name: "Technology & STEM", slug: "technology", categories: ["technology"], icon: "💻" },
+                        { name: "Community Service", slug: "community", categories: ["community"], icon: "🤝" },
+                        { name: "Senior Care", slug: "seniors", categories: ["seniors"], icon: "👴" },
+                        { name: "Youth Mentoring", slug: "youth", categories: ["youth"], icon: "👦" },
+                      ].map(({ name, slug, categories }) => {
+                        const categoryOpps = allOpportunities.filter(opp =>
+                          opp.category.some(cat => categories.includes(cat))
+                        );
+                        
+                        return (
+                          <Card 
+                            key={name} 
+                            className="cursor-pointer hover-elevate"
+                            onClick={() => setLocation(`/search?category=${slug}`)}
+                            data-testid={`card-category-${slug}`}
+                          >
+                            <CardContent className="pt-6">
+                              <div className="text-center">
+                                <h3 className="font-semibold text-sm mb-2">{name}</h3>
+                                <Badge variant="secondary">
+                                  {categoryOpps.length} {categoryOpps.length === 1 ? "opportunity" : "opportunities"}
+                                </Badge>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
               ) : (

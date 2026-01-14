@@ -208,9 +208,11 @@ export default function Search() {
               <Card className="border-dashed">
                 <CardContent className="py-12 text-center">
                   <SearchIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-lg font-medium">No results found</p>
+                  <p className="text-lg font-medium">No opportunities found</p>
                   <p className="text-muted-foreground">
-                    Try different keywords or check your spelling
+                    {categoryInfo 
+                      ? "No opportunities available in this category yet. Check back soon!"
+                      : "Try different keywords or check your spelling"}
                   </p>
                 </CardContent>
               </Card>
