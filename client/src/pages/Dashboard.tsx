@@ -361,52 +361,43 @@ export default function Dashboard() {
                 </Card>
 
                 {/* Browse by Category - shown after quiz completion */}
-                {allOpportunities && allOpportunities.length > 0 && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg">Browse by Category</CardTitle>
-                      <CardDescription>Explore all opportunity types</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-2">
-                      {[
-                        { name: "Environment & Nature", icon: "🌿", categories: ["environment"] },
-                        { name: "Education & Training", icon: "📚", categories: ["tutoring", "youth"] },
-                        { name: "Animal Welfare", icon: "🐾", categories: ["animals"] },
-                        { name: "Arts & Culture", icon: "🎨", categories: ["arts"] },
-                        { name: "Technology & STEM", icon: "💻", categories: ["technology"] },
-                        { name: "Community Service", icon: "🤝", categories: ["community"] },
-                        { name: "Senior Care", icon: "👴", categories: ["seniors"] },
-                        { name: "Youth Mentoring", icon: "👦", categories: ["youth"] },
-                      ].map(({ name, icon, categories }) => {
-                        const categoryOpps = allOpportunities.filter(opp =>
-                          opp.category.some(cat => categories.includes(cat))
-                        );
-                        if (categoryOpps.length === 0) return null;
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Browse by Category</CardTitle>
+                    <CardDescription>Explore all opportunity types</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    {[
+                      { name: "Environment & Nature", slug: "environment", categories: ["environment"] },
+                      { name: "Education & Training", slug: "education", categories: ["tutoring", "youth"] },
+                      { name: "Animal Welfare", slug: "animals", categories: ["animals"] },
+                      { name: "Arts & Culture", slug: "arts", categories: ["arts"] },
+                      { name: "Technology & STEM", slug: "technology", categories: ["technology"] },
+                      { name: "Community Service", slug: "community", categories: ["community"] },
+                      { name: "Senior Care", slug: "seniors", categories: ["seniors"] },
+                      { name: "Youth Mentoring", slug: "youth", categories: ["youth"] },
+                    ].map(({ name, slug, categories }) => {
+                      const categoryOpps = allOpportunities?.filter(opp =>
+                        opp.category.some(cat => categories.includes(cat))
+                      ) || [];
 
-                        return (
-                          <Button
-                            key={name}
-                            variant="ghost"
-                            className="w-full justify-start gap-2 h-auto py-3 px-3"
-                            onClick={() => {
-                              const element = document.getElementById(`category-${categories[0]}`);
-                              element?.scrollIntoView({ behavior: 'smooth' });
-                            }}
-                            data-testid={`button-category-${categories[0]}`}
-                          >
-                            <span className="text-xl">{icon}</span>
-                            <div className="flex flex-col items-start flex-1">
-                              <span className="text-sm font-medium">{name}</span>
-                              <span className="text-xs text-muted-foreground">
-                                {categoryOpps.length} opportunities
-                              </span>
-                            </div>
-                          </Button>
-                        );
-                      })}
-                    </CardContent>
-                  </Card>
-                )}
+                      return (
+                        <Button
+                          key={name}
+                          variant="ghost"
+                          className="w-full justify-between gap-2 h-auto py-3 px-3"
+                          onClick={() => setLocation(`/search?category=${slug}`)}
+                          data-testid={`button-sidebar-category-${slug}`}
+                        >
+                          <span className="text-sm font-medium">{name}</span>
+                          <Badge variant="secondary" className="text-xs">
+                            {categoryOpps.length}
+                          </Badge>
+                        </Button>
+                      );
+                    })}
+                  </CardContent>
+                </Card>
               </>
             )}
             </div>
