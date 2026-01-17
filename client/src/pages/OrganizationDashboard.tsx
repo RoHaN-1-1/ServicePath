@@ -38,7 +38,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Plus, Pencil, Trash2, MapPin, Clock, Loader2, Users, Calendar, Megaphone } from "lucide-react";
+import { Plus, Pencil, Trash2, MapPin, Clock, Loader2, Users, Calendar, Megaphone, HelpCircle } from "lucide-react";
+import { useLocation } from "wouter";
 
 const CATEGORIES = [
   { value: "environment", label: "Environment & Nature" },
@@ -63,6 +64,7 @@ interface OrganizationDashboardProps {
 
 export default function OrganizationDashboard({ organizationName }: OrganizationDashboardProps) {
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingOpportunity, setEditingOpportunity] = useState<VolunteerOpportunity | null>(null);
   const [isAnnouncementDialogOpen, setIsAnnouncementDialogOpen] = useState(false);
@@ -415,6 +417,24 @@ export default function OrganizationDashboard({ organizationName }: Organization
               <p className="text-sm text-muted-foreground" data-testid="text-org-description">
                 {userInfo?.organizationDescription || "No description provided."}
               </p>
+            </CardContent>
+          </Card>
+
+          {/* Help Section */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg">Need Help?</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Button
+                variant="outline"
+                className="w-full justify-start gap-3"
+                onClick={() => setLocation("/help")}
+                data-testid="button-org-help"
+              >
+                <HelpCircle className="h-5 w-5" />
+                View Tutorials
+              </Button>
             </CardContent>
           </Card>
         </div>

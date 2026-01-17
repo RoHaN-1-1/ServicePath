@@ -1,0 +1,57 @@
+The project began as a simple student-only demo.
+Login used hardcoded credentials.
+Volunteer opportunities were loaded from a CSV file.
+Students could log volunteer hours with basic details.
+Authentication was then improved to support real users.
+Full registration was added with secure password hashing using bcrypt.
+Form input issues caused by React key conflicts were fixed.
+Auto-login was added so users did not need to sign in again after registering.
+Password visibility toggles were added for better usability.
+Session persistence was implemented so users stayed logged in after page refreshes.
+The core student experience was expanded.
+A personality and interest-based quiz was introduced.
+AI-powered opportunity matching was added.
+Students could browse opportunities by category.
+Search and filtering features were added.
+Account management features were refined.
+Student statistics were moved to a dedicated Account Info section.
+A “member since” date was added using account creation timestamps.
+Account deletion was added with two-step password confirmation.
+Volunteer hour tracking was hidden for organization accounts.
+Support for organizations was added.
+A separate organization account type and registration flow were created.
+Organizations received a dashboard for managing opportunities.
+Organizations could post, edit, and delete volunteer opportunities.
+Event date and time fields were added to opportunities.
+An announcements system was added with a character limit.
+Organizations could edit a public bio displayed on the home page.
+Opportunity browsing was optimized.
+The system moved away from AI-based browsing.
+Client-side filtering was added for faster performance.
+Category cards were added to link directly to filtered results.
+Organization-created opportunities were integrated into student search results.
+Volunteer hour tracking was enhanced for real-world use.
+
+
+Hour logs included date, duration, and activity.
+
+
+A verification status field was added.
+
+
+Digital signature capture was implemented with touch support.
+
+
+Signatures were stored as images and displayed as thumbnails.
+
+
+The user interface and experience were polished.
+
+
+Sidebar positioning issues were fixed.
+
+
+Clicking the logo returns users to their dashboard.
+
+
+The quiz flow was improved to show clear before-and-after states.

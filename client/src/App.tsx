@@ -14,6 +14,7 @@ import Tracker from "@/pages/Tracker";
 import Reflections from "@/pages/Reflections";
 import Share from "@/pages/Share";
 import Search from "@/pages/Search";
+import Help from "@/pages/Help";
 import NotFound from "@/pages/not-found";
 import type { AccountType } from "@shared/schema";
 
@@ -131,6 +132,7 @@ function Router() {
             <Route path="/dashboard" component={() => (
               <OrganizationDashboard organizationName={userInfo.organizationName} organizationDescription={userInfo.organizationDescription} />
             )} />
+            <Route path="/help" component={Help} />
             <Route component={NotFound} />
           </Switch>
         ) : (
@@ -142,6 +144,7 @@ function Router() {
             <Route path="/reflections" component={Reflections} />
             <Route path="/share" component={Share} />
             <Route path="/search" component={Search} />
+            <Route path="/help" component={Help} />
             <Route component={NotFound} />
           </Switch>
         )}

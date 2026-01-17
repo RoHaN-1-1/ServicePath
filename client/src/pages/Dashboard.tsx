@@ -320,8 +320,9 @@ export default function Dashboard() {
                 </Button>
                 <Button
                   variant="outline"
-                  className="w-full justify-start gap-3 h-12"
-                  data-testid="button-tool-help"
+                  className="w-full justify-start gap-3"
+                  onClick={() => setLocation("/help")}
+                  data-testid="button-student-help"
                 >
                   <HelpCircle className="h-5 w-5" />
                   Help
