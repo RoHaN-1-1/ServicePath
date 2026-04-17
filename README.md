@@ -153,3 +153,9 @@ Clearly state age requirements, skills needed, and any training provided. This h
 **Keep Information Updated**
 
 Regularly review your opportunities to ensure dates, times, and details are current. Remove opportunities that are no longer available.
+
+## Author
+
+Rohan Kandepaneni
+
+Github: https://github.com/RoHaN-1-1
